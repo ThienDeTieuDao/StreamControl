@@ -1,0 +1,45 @@
+(venv) root@ip-172-31-38-223:/www/wwwroot/hwosecurity.org# pip install mysqlclient
+Collecting mysqlclient
+  Downloading mysqlclient-2.2.7.tar.gz (91 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 91.4/91.4 KB 2.9 MB/s eta 0:00:00
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... error
+  error: subprocess-exited-with-error
+  
+  × Getting requirements to build wheel did not run successfully.
+  │ exit code: 1
+  ╰─> [26 lines of output]
+      Trying pkg-config --exists mysqlclient
+      Command 'pkg-config --exists mysqlclient' returned non-zero exit status 1.
+      Trying pkg-config --exists mariadb
+      Command 'pkg-config --exists mariadb' returned non-zero exit status 1.
+      Trying pkg-config --exists libmariadb
+      Command 'pkg-config --exists libmariadb' returned non-zero exit status 1.
+      Trying pkg-config --exists perconaserverclient
+      Command 'pkg-config --exists perconaserverclient' returned non-zero exit status 1.
+      Traceback (most recent call last):
+        File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/pip/_vendor/pep517/in_process/_in_process.py", line 363, in <module>
+          main()
+        File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/pip/_vendor/pep517/in_process/_in_process.py", line 345, in main
+          json_out['return_val'] = hook(**hook_input['kwargs'])
+        File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/pip/_vendor/pep517/in_process/_in_process.py", line 130, in get_requires_for_build_wheel
+          return hook(config_settings)
+        File "/tmp/pip-build-env-2hako17f/overlay/lib/python3.10/site-packages/setuptools/build_meta.py", line 334, in get_requires_for_build_wheel
+          return self._get_build_requires(config_settings, requirements=[])
+        File "/tmp/pip-build-env-2hako17f/overlay/lib/python3.10/site-packages/setuptools/build_meta.py", line 304, in _get_build_requires
+          self.run_setup()
+        File "/tmp/pip-build-env-2hako17f/overlay/lib/python3.10/site-packages/setuptools/build_meta.py", line 320, in run_setup
+          exec(code, locals())
+        File "<string>", line 156, in <module>
+        File "<string>", line 49, in get_config_posix
+        File "<string>", line 28, in find_package_name
+      Exception: Can not find valid pkg-config name.
+      Specify MYSQLCLIENT_CFLAGS and MYSQLCLIENT_LDFLAGS env vars manually
+      [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+error: subprocess-exited-with-error
+
+× Getting requirements to build wheel did not run successfully.
+│ exit code: 1
+╰─> See above for output.

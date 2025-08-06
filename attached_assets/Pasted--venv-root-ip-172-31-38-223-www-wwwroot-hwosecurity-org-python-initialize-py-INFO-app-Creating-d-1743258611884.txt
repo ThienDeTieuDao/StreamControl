@@ -1,0 +1,44 @@
+(venv) root@ip-172-31-38-223:/www/wwwroot/hwosecurity.org# python initialize.py
+INFO:app:Creating default admin user
+==================================================
+StreamLite Initialization
+==================================================
+
+This script will set up your StreamLite installation.
+
+Please provide admin user details:
+Admin username [admin]: admin
+Admin email [admin@example.com]: admin@example.com
+Admin password: 
+Password must be at least 8 characters long.
+Admin password: 
+Confirm password: 
+
+Ready to initialize with the following settings:
+- Admin Username: admin
+- Admin Email: admin@example.com
+
+Proceed with initialization? [Y/n]: y
+Creating database tables...
+Traceback (most recent call last):
+  File "/www/wwwroot/hwosecurity.org/initialize.py", line 168, in <module>
+    main()
+  File "/www/wwwroot/hwosecurity.org/initialize.py", line 165, in main
+    interactive_setup()
+  File "/www/wwwroot/hwosecurity.org/initialize.py", line 135, in interactive_setup
+    create_tables()
+  File "/www/wwwroot/hwosecurity.org/initialize.py", line 24, in create_tables
+    db.create_all()
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/flask_sqlalchemy/extension.py", line 900, in create_all
+    self._call_for_binds(bind_key, "create_all")
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/flask_sqlalchemy/extension.py", line 871, in _call_for_binds
+    engine = self.engines[key]
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/flask_sqlalchemy/extension.py", line 687, in engines
+    app = current_app._get_current_object()  # type: ignore[attr-defined]
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/werkzeug/local.py", line 519, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.

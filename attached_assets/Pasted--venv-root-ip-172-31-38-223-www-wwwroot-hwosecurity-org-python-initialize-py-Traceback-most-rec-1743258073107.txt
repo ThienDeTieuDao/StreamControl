@@ -1,0 +1,76 @@
+(venv) root@ip-172-31-38-223:/www/wwwroot/hwosecurity.org# python initialize.py
+Traceback (most recent call last):
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.InsufficientPrivilege: permission denied for schema public
+LINE 2: CREATE TABLE "user" (
+                     ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/www/wwwroot/hwosecurity.org/initialize.py", line 17, in <module>
+    from app import db
+  File "/www/wwwroot/hwosecurity.org/app.py", line 60, in <module>
+    db.create_all()
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/flask_sqlalchemy/extension.py", line 900, in create_all
+    self._call_for_binds(bind_key, "create_all")
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/flask_sqlalchemy/extension.py", line 881, in _call_for_binds
+    getattr(metadata, op_name)(bind=engine)
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/sql/schema.py", line 5925, in create_all
+    bind._run_ddl_visitor(
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 3249, in _run_ddl_visitor
+    conn._run_ddl_visitor(visitorcallable, element, **kwargs)
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2456, in _run_ddl_visitor
+    visitorcallable(self.dialect, self, **kwargs).traverse_single(element)
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/sql/visitors.py", line 664, in traverse_single
+    return meth(obj, **kw)
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/sql/ddl.py", line 981, in visit_metadata
+    self.traverse_single(
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/sql/visitors.py", line 664, in traverse_single
+    return meth(obj, **kw)
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/sql/ddl.py", line 1019, in visit_table
+    )._invoke_with(self.connection)
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/sql/ddl.py", line 321, in _invoke_with
+    return bind.execute(self)
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
+    return meth(
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/sql/ddl.py", line 187, in _execute_on_connection
+    return connection._execute_ddl(
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1527, in _execute_ddl
+    ret = self._execute_context(
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1843, in _execute_context
+    return self._exec_single_context(
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1983, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2352, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "/www/wwwroot/hwosecurity.org/venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 945, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.InsufficientPrivilege) permission denied for schema public
+LINE 2: CREATE TABLE "user" (
+                     ^
+
+[SQL: 
+CREATE TABLE "user" (
+        id SERIAL NOT NULL, 
+        username VARCHAR(64) NOT NULL, 
+        email VARCHAR(120) NOT NULL, 
+        password_hash VARCHAR(256) NOT NULL, 
+        is_admin BOOLEAN, 
+        profile_image VARCHAR(512), 
+        bio TEXT, 
+        created_at TIMESTAMP WITHOUT TIME ZONE, 
+        last_login TIMESTAMP WITHOUT TIME ZONE, 
+        PRIMARY KEY (id), 
+        UNIQUE (username), 
+        UNIQUE (email)
+)
+
+]
+(Background on this error at: https://sqlalche.me/e/20/f405)
