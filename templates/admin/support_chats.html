@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Support Chats{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-3">
+            {% include 'admin/sidebar.html' %}
+        </div>
+        
+        <div class="col-lg-9">
+            <h2>Support Chats</h2>
+            <p class="text-muted">Manage user support requests and provide assistance.</p>
+            
+            <!-- Active Support Chats -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-headset me-2"></i>Active Support Chats
+                </div>
+                <div class="card-body">
+                    {% if active_chats %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>User</th>
+                                    <th>Stream</th>
+                                    <th>Last Activity</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for chat in active_chats %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('settings.view_support_chat', chat_id=chat.id) }}">
+                                            {{ chat.subject }}
+                                        </a>
+                                        {% if chat.messages|selectattr('is_admin', 'eq', false)|selectattr('is_read', 'eq', false)|list|length > 0 %}
+                                        <span class="badge bg-danger ms-2">New</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ chat.user.username }}</td>
+                                    <td>
+                                        {% if chat.live_stream %}
+                                        <a href="{{ url_for('live.view_stream', stream_id=chat.live_stream.id) }}">
+                                            {{ chat.live_stream.title|truncate(30) }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ chat.updated_at.strftime('%b %d, %Y %H:%M') }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('settings.view_support_chat', chat_id=chat.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-reply me-1"></i>Reply
+                                            </a>
+                                            <form action="{{ url_for('settings.close_support_chat', chat_id=chat.id) }}" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger ms-1" onclick="return confirm('Are you sure you want to close this support chat?')">
+                                                    <i class="fas fa-times-circle me-1"></i>Close
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h5>No Active Support Chats</h5>
+                        <p class="text-muted">There are currently no active support conversations.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Closed Support Chats -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <i class="fas fa-history me-2"></i>Recently Closed Chats
+                </div>
+                <div class="card-body">
+                    {% if closed_chats %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>User</th>
+                                    <th>Stream</th>
+                                    <th>Last Activity</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for chat in closed_chats %}
+                                <tr class="text-muted">
+                                    <td>
+                                        <a href="{{ url_for('settings.view_support_chat', chat_id=chat.id) }}" class="text-muted">
+                                            {{ chat.subject }}
+                                        </a>
+                                    </td>
+                                    <td>{{ chat.user.username }}</td>
+                                    <td>
+                                        {% if chat.live_stream %}
+                                        <a href="{{ url_for('live.view_stream', stream_id=chat.live_stream.id) }}" class="text-muted">
+                                            {{ chat.live_stream.title|truncate(30) }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ chat.updated_at.strftime('%b %d, %Y %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('settings.view_support_chat', chat_id=chat.id) }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-archive fa-3x text-secondary mb-3"></i>
+                        <h5>No Closed Support Chats</h5>
+                        <p class="text-muted">There are no recently closed support conversations.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

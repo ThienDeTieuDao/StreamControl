@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}My Media - StreamLite{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Media</h1>
+    <a href="{{ url_for('media.upload') }}" class="btn btn-primary">
+        <i class="fas fa-upload"></i> Upload New Media
+    </a>
+</div>
+
+{% if media_items.items %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Visibility</th>
+                            <th>Uploaded</th>
+                            <th>Views</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in media_items.items %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('media.watch', media_id=item.id) }}" class="d-flex align-items-center text-decoration-none">
+                                    {% if item.thumbnail_path %}
+                                    <div class="me-2" style="width: 60px; height: 40px; overflow: hidden; position: relative;">
+                                        <img src="{{ url_for('media.serve_media', filename=item.thumbnail_path.split('/')[-1]) }}" 
+                                             class="img-fluid" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 100%; min-height: 100%;">
+                                    </div>
+                                    {% elif item.media_type == 'video' %}
+                                    <div class="me-2 bg-dark d-flex align-items-center justify-content-center" style="width: 60px; height: 40px;">
+                                        <i class="fas fa-film text-white"></i>
+                                    </div>
+                                    {% else %}
+                                    <div class="me-2 bg-dark d-flex align-items-center justify-content-center" style="width: 60px; height: 40px;">
+                                        <i class="fas fa-music text-white"></i>
+                                    </div>
+                                    {% endif %}
+                                    {{ item.title }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if item.media_type == 'video' %}
+                                <span class="badge bg-primary">Video</span>
+                                {% else %}
+                                <span class="badge bg-info">Audio</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.is_public %}
+                                <span class="badge bg-success">Public</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Private</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.created_at.strftime('%b %d, %Y') }}</td>
+                            <td>{{ item.views }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('media.watch', media_id=item.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-play"></i>
+                                    </a>
+                                    <a href="{{ url_for('media.edit_media', media_id=item.id) }}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ item.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteModal{{ item.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Deletion</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete "<strong>{{ item.title }}</strong>"?</p>
+                                                <p class="text-danger">This action cannot be undone!</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('media.delete_media', media_id=item.id) }}" method="post">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if media_items.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if media_items.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('media.dashboard', page=media_items.prev_num) }}">Previous</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Previous</span>
+            </li>
+            {% endif %}
+            
+            {% for page_num in media_items.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    {% if media_items.page == page_num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('media.dashboard', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if media_items.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('media.dashboard', page=media_items.next_num) }}">Next</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+{% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h3 class="mb-4">You haven't uploaded any media yet</h3>
+            <p class="mb-4">Start sharing your content with others by uploading your first media file.</p>
+            <a href="{{ url_for('media.upload') }}" class="btn btn-lg btn-primary">
+                <i class="fas fa-upload me-2"></i> Upload Now
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

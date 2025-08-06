@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}StreamLite - Lightweight Streaming Platform{% endblock %}</title>
+    
+    <!-- Replit-themed Bootstrap CSS -->
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Video.js CSS -->
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body data-bs-theme="dark">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('media.index') }}">
+                <i class="fas fa-play-circle text-primary me-2"></i> 
+                <span class="fw-bold">StreamLite</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('media.index') }}">
+                            <i class="fas fa-photo-video me-1"></i> Browse
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('live.index') }}">
+                            <i class="fas fa-broadcast-tower me-1"></i> Live
+                        </a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="mediaDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-film me-1"></i> Media
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="mediaDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('media.dashboard') }}">
+                                <i class="fas fa-folder me-1"></i> My Media
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('media.upload') }}">
+                                <i class="fas fa-upload me-1"></i> Upload
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="liveDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-video me-1"></i> Streaming
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="liveDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('live.dashboard') }}">
+                                <i class="fas fa-th-list me-1"></i> My Streams
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('live.setup_stream') }}">
+                                <i class="fas fa-satellite-dish me-1"></i> Go Live
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% if current_user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-cog me-1"></i> Admin
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <!-- Search Form -->
+                <form class="d-flex me-2" action="{{ url_for('media.search') }}" method="get">
+                    <div class="input-group">
+                        <input class="form-control border-secondary bg-dark text-light" type="search" name="q" placeholder="Search media..." aria-label="Search">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <div class="avatar-circle me-2">
+                                <span class="avatar-initials">{{ current_user.username[0]|upper }}</span>
+                            </div>
+                            <span>{{ current_user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">
+                                <i class="fas fa-user me-1"></i> Profile
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt me-1"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-outline-primary me-2 px-3" href="{{ url_for('auth.login') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary px-3" href="{{ url_for('auth.register') }}">
+                            <i class="fas fa-user-plus me-1"></i> Register
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container py-4">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer-area py-4 mt-5 border-top border-secondary">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-play-circle text-primary fa-2x me-2"></i>
+                        <h4 class="mb-0 fw-bold">StreamLite</h4>
+                    </div>
+                    <p class="text-muted">A lightweight streaming platform that can be installed alongside other control panels on Ubuntu 20.04. Built for performance and simplicity.</p>
+                    <p class="text-muted mt-2">Developed by: Tony Pham | <a href="mailto:info@hwosecurity.io" class="text-primary">info@hwosecurity.io</a></p>
+                    <div class="d-flex mt-3">
+                        <a href="https://github.com/ExpertDevUX" class="btn btn-sm btn-outline-light rounded-circle me-2" target="_blank">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="#" class="btn btn-sm btn-outline-light rounded-circle me-2">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="btn btn-sm btn-outline-light rounded-circle me-2">
+                            <i class="fab fa-discord"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <h5 class="text-primary mb-3">Quick Links</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="{{ url_for('media.index') }}" class="footer-link"><i class="fas fa-angle-right me-1"></i> Browse</a></li>
+                        <li><a href="{{ url_for('live.index') }}" class="footer-link"><i class="fas fa-angle-right me-1"></i> Live Streams</a></li>
+                        {% if current_user.is_authenticated %}
+                        <li><a href="{{ url_for('media.upload') }}" class="footer-link"><i class="fas fa-angle-right me-1"></i> Upload Media</a></li>
+                        <li><a href="{{ url_for('live.setup_stream') }}" class="footer-link"><i class="fas fa-angle-right me-1"></i> Go Live</a></li>
+                        <li><a href="{{ url_for('media.dashboard') }}" class="footer-link"><i class="fas fa-angle-right me-1"></i> My Media</a></li>
+                        {% else %}
+                        <li><a href="{{ url_for('auth.login') }}" class="footer-link"><i class="fas fa-angle-right me-1"></i> Login</a></li>
+                        <li><a href="{{ url_for('auth.register') }}" class="footer-link"><i class="fas fa-angle-right me-1"></i> Register</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <h5 class="text-primary mb-3">Support</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="#" class="footer-link"><i class="fas fa-book me-1"></i> Documentation</a></li>
+                        <li><a href="#" class="footer-link"><i class="fas fa-question-circle me-1"></i> Help Center</a></li>
+                        <li><a href="#" class="footer-link"><i class="fas fa-envelope me-1"></i> Contact Us</a></li>
+                    </ul>
+                    
+                    <div class="mt-3 p-3 bg-dark rounded border border-secondary">
+                        <small class="d-block text-muted mb-2">Need help with installation?</small>
+                        <a href="#" class="btn btn-sm btn-primary">Installation Guide</a>
+                    </div>
+                </div>
+            </div>
+            <hr class="mt-4 mb-3 border-secondary">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <p class="mb-0 text-muted">&copy; {{ now.year }} StreamLite by Tony Pham (ExpertDevUX). All rights reserved.</p>
+                <div class="text-muted">
+                    <small>Version 1.0.0</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap 5 JS Bundle with Popper (matching with dark theme) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Video.js -->
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    
+    <!-- Custom JS -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

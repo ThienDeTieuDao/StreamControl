@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block title %}Streaming Guide - StreamLite{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0"><i class="fas fa-broadcast-tower me-2"></i>StreamLite Streaming Guide</h1>
+                </div>
+                <div class="card-body">
+                    <h2 class="h4 mb-3">Streaming to hwosecurity.org</h2>
+                    <p class="lead">
+                        Follow this guide to set up your streaming software and go live on StreamLite.
+                    </p>
+
+                    <div class="alert alert-info">
+                        <strong>Important:</strong> You need to <a href="{{ url_for('live.setup_stream') }}">create a stream</a> before you can go live.
+                    </div>
+
+                    <h3 class="h5 mb-3 mt-4">OBS Studio Configuration</h3>
+                    <p>
+                        <a href="https://obsproject.com/" target="_blank">OBS Studio</a> is free, open-source software for video recording and live streaming.
+                        Here's how to configure it for StreamLite:
+                    </p>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            Step 1: Open OBS Studio Settings
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                Click on "Settings" in the control panel (or File > Settings from the menu).
+                            </p>
+                            <img src="https://obsproject.com/assets/images/features/settings-panel.png" class="img-fluid border rounded mb-2" alt="OBS Settings">
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            Step 2: Configure Stream Settings
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                1. Select the "Stream" category from the settings sidebar.
+                            </p>
+                            <p>
+                                2. For <strong>Service</strong>, select "Custom...".
+                            </p>
+                            <p>
+                                3. For <strong>Server</strong>, enter:
+                            </p>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">RTMP</span>
+                                <input type="text" class="form-control" value="rtmp://hwosecurity.org/live" readonly>
+                                <button class="btn btn-outline-primary" type="button" onclick="copyToClipboard('rtmp://hwosecurity.org/live')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <p>Or for secure RTMPS connection (recommended):</p>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">RTMPS</span>
+                                <input type="text" class="form-control" value="rtmps://hwosecurity.org:1936/live" readonly>
+                                <button class="btn btn-outline-primary" type="button" onclick="copyToClipboard('rtmps://hwosecurity.org:1936/live')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <p>
+                                4. For <strong>Stream Key</strong>, enter your stream key (found in your stream's control panel).
+                            </p>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-lock me-2"></i> <strong>Important:</strong> Keep your stream key private! Anyone with your stream key can stream to your channel.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            Step 3: Configure Output Settings
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                1. Select the "Output" category from the settings sidebar.
+                            </p>
+                            <p>
+                                2. We recommend the following settings for best quality:
+                            </p>
+                            <ul>
+                                <li><strong>Output Mode:</strong> Advanced</li>
+                                <li><strong>Encoder:</strong> x264 (or Hardware NVENC/AMD if available)</li>
+                                <li><strong>Rate Control:</strong> CBR</li>
+                                <li><strong>Bitrate:</strong> 2500-6000 Kbps (depends on your internet upload speed)</li>
+                                <li><strong>Keyframe Interval:</strong> 2</li>
+                                <li><strong>Preset:</strong> veryfast (or faster)</li>
+                                <li><strong>Profile:</strong> main</li>
+                                <li><strong>Tune:</strong> (none)</li>
+                            </ul>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> <strong>Note:</strong> Lower your bitrate if you experience dropped frames or buffering.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            Step 4: Configure Video Settings
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                1. Select the "Video" category from the settings sidebar.
+                            </p>
+                            <p>
+                                2. Recommended video settings:
+                            </p>
+                            <ul>
+                                <li><strong>Base (Canvas) Resolution:</strong> 1920x1080 or your monitor resolution</li>
+                                <li><strong>Output (Scaled) Resolution:</strong> 1280x720 (720p)</li>
+                                <li><strong>Downscale Filter:</strong> Lanczos (or Bicubic if performance is an issue)</li>
+                                <li><strong>FPS:</strong> 30 or 60</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            Step 5: Configure Audio Settings
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                1. Select the "Audio" category from the settings sidebar.
+                            </p>
+                            <p>
+                                2. Recommended audio settings:
+                            </p>
+                            <ul>
+                                <li><strong>Sample Rate:</strong> 48 kHz</li>
+                                <li><strong>Channels:</strong> Stereo</li>
+                                <li><strong>Global Audio Devices:</strong> Set up your microphone and desktop audio</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            Step 6: Start Streaming
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                1. Click "Apply" and "OK" to save your settings.
+                            </p>
+                            <p>
+                                2. Set up your scenes and sources (camera, game capture, display capture, etc.).
+                            </p>
+                            <p>
+                                3. When you're ready, click "Start Streaming" in the main OBS Studio interface.
+                            </p>
+                            <p>
+                                4. Check your stream's control panel to confirm you're live.
+                            </p>
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i> <strong>Congratulations!</strong> You should now be streaming live on StreamLite.
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> <strong>Note:</strong> Your stream will be available at the following URL:
+                                <div class="mt-2">
+                                    <code>https://hwosecurity.org/hls/<span class="text-danger">your_stream_key</span>.m3u8</code>
+                                </div>
+                                <p class="mt-2 mb-0">This is the HLS playback URL that will be used by the StreamLite player. Viewers don't need to use this URL directly as it's built into our streaming pages.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="h5 mb-3 mt-4">Troubleshooting</h3>
+                    <div class="accordion" id="troubleshootingAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    Stream not appearing or showing as offline
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>Verify your stream key is correct</li>
+                                        <li>Make sure OBS says "Streaming" in the status bar</li>
+                                        <li>Check you're using the correct server URL</li>
+                                        <li>Try using the RTMP URL instead of RTMPS (or vice versa)</li>
+                                        <li>Check your internet connection</li>
+                                        <li>Restart OBS Studio</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    Dropped frames or buffering
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>Lower your bitrate (try 2000-3000 Kbps)</li>
+                                        <li>Lower your output resolution (try 720p or 480p)</li>
+                                        <li>Reduce your FPS to 30</li>
+                                        <li>Use a faster encoder preset (superfast or ultrafast)</li>
+                                        <li>Close other applications that may be using bandwidth</li>
+                                        <li>Use a wired connection instead of Wi-Fi if possible</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                    Video player not loading or showing errors
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>Make sure your stream is properly started and showing as "Live" in your dashboard</li>
+                                        <li>Refresh the stream page completely (Ctrl+F5 or Command+Shift+R)</li>
+                                        <li>Check your browser console for any JavaScript errors</li>
+                                        <li>Try a different web browser (Chrome, Firefox, Safari, etc.)</li>
+                                        <li>Clear your browser cache and cookies</li>
+                                        <li>Check that the HLS stream is properly generated - it may take up to 30 seconds for the player to show the stream after going live</li>
+                                        <li>Verify that the HLS URL is accessible by checking directly: <code>https://hwosecurity.org/hls/<span class="text-danger">your_stream_key</span>.m3u8</code></li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    
+                    <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    No sound or video in stream
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <p><strong>No Sound:</strong></p>
+                                    <ol>
+                                        <li>Check your audio sources in OBS</li>
+                                        <li>Verify your microphone or desktop audio isn't muted</li>
+                                        <li>Check the audio mixer levels in OBS</li>
+                                        <li>Make sure you have the correct audio devices selected in OBS settings</li>
+                                    </ol>
+                                    <p><strong>No Video:</strong></p>
+                                    <ol>
+                                        <li>Make sure you have added sources to your scene</li>
+                                        <li>Check if your sources are visible and not hidden</li>
+                                        <li>Verify your capture method works (try Display Capture if other methods fail)</li>
+                                        <li>Update your graphics drivers</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="h5 mb-3 mt-4">Other Streaming Software</h3>
+                    <p>
+                        You can also use other streaming software like:
+                    </p>
+                    <ul>
+                        <li><a href="https://streamlabs.com/" target="_blank">Streamlabs Desktop</a></li>
+                        <li><a href="https://www.xsplit.com/" target="_blank">XSplit</a></li>
+                        <li><a href="https://github.com/obsproject/obs-studio/wiki/Streaming-With-FFmpeg" target="_blank">FFmpeg</a></li>
+                    </ul>
+                    <p>
+                        The configuration is similar: use the RTMP/RTMPS server URL and your stream key.
+                    </p>
+
+                    <div class="mt-4 text-center">
+                        <a href="{{ url_for('live.dashboard') }}" class="btn btn-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Return to Stream Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard(text) {
+    // Create temporary input
+    const input = document.createElement('input');
+    input.value = text;
+    document.body.appendChild(input);
+    
+    // Select and copy
+    input.select();
+    document.execCommand('copy');
+    
+    // Remove temp element
+    document.body.removeChild(input);
+    
+    // Show toast or alert
+    alert('Copied to clipboard!');
+}
+</script>
+{% endblock %}

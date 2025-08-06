@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+
+{% block title %}Embed Codes - {{ stream.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('live.index') }}">Live Streams</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('live.view_stream', stream_id=stream.id) }}">{{ stream.title }}</a></li>
+                    <li class="breadcrumb-item active">Embed Codes</li>
+                </ol>
+            </nav>
+            
+            <h1 class="mb-4">Embed Codes for "{{ stream.title }}"</h1>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> These embed codes allow you to add this stream to your website or share it with others.
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Preview -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-eye me-2"></i>Live Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="ratio ratio-16x9">
+                        <iframe src="{{ url_for('live.embed_stream', stream_id=stream.id, _external=True) }}" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Iframe Embed -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-code me-2"></i>Standard Iframe Embed</h5>
+                </div>
+                <div class="card-body">
+                    <p>Copy and paste this code into your website to embed the stream:</p>
+                    <div class="bg-dark text-light p-3 mb-3 rounded">
+                        <pre><code>&lt;iframe src="{{ url_for('live.embed_stream', stream_id=stream.id, _external=True) }}" 
+        width="800" height="450" frameborder="0" allowfullscreen&gt;&lt;/iframe&gt;</code></pre>
+                    </div>
+                    <button class="btn btn-primary" onclick="copyToClipboard('iframe-standard')">
+                        <i class="fas fa-copy me-2"></i>Copy Code
+                    </button>
+                    <textarea id="iframe-standard" style="position: absolute; left: -9999px;">
+<iframe src="{{ url_for('live.embed_stream', stream_id=stream.id, _external=True) }}" width="800" height="450" frameborder="0" allowfullscreen></iframe>
+                    </textarea>
+                </div>
+            </div>
+            
+            <!-- Responsive Embed -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>Responsive Embed (Bootstrap)</h5>
+                </div>
+                <div class="card-body">
+                    <p>Use this code for responsive embedding (adapts to screen size):</p>
+                    <div class="bg-dark text-light p-3 mb-3 rounded">
+                        <pre><code>&lt;div class="ratio ratio-16x9"&gt;
+    &lt;iframe src="{{ url_for('live.embed_stream', stream_id=stream.id, _external=True) }}" 
+            frameborder="0" allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/div&gt;</code></pre>
+                    </div>
+                    <button class="btn btn-primary" onclick="copyToClipboard('iframe-responsive')">
+                        <i class="fas fa-copy me-2"></i>Copy Code
+                    </button>
+                    <textarea id="iframe-responsive" style="position: absolute; left: -9999px;">
+<div class="ratio ratio-16x9">
+    <iframe src="{{ url_for('live.embed_stream', stream_id=stream.id, _external=True) }}" frameborder="0" allowfullscreen></iframe>
+</div>
+                    </textarea>
+                </div>
+            </div>
+            
+            <!-- Custom Options -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Custom Options</h5>
+                </div>
+                <div class="card-body">
+                    <p>Customize your embed with these options:</p>
+                    
+                    <form id="embed-options-form" class="mb-3">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="show_info" checked>
+                                    <label class="form-check-label" for="show_info">Show stream information</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="show_watermark" checked>
+                                    <label class="form-check-label" for="show_watermark">Show watermark</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="show_viewers" checked>
+                                    <label class="form-check-label" for="show_viewers">Show viewer count</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="theme">Theme</label>
+                                    <select class="form-select" id="theme">
+                                        <option value="dark">Dark</option>
+                                        <option value="light">Light</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="width">Width (px)</label>
+                                    <input type="number" class="form-control" id="width" value="800">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="height">Height (px)</label>
+                                    <input type="number" class="form-control" id="height" value="450">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div class="bg-dark text-light p-3 mb-3 rounded">
+                        <pre><code id="custom-embed-code">&lt;iframe src="{{ url_for('live.embed_stream', stream_id=stream.id, _external=True) }}?show_info=1&show_watermark=1&show_viewers=1&theme=dark" 
+        width="800" height="450" frameborder="0" allowfullscreen&gt;&lt;/iframe&gt;</code></pre>
+                    </div>
+                    <button class="btn btn-primary" onclick="copyToClipboard('iframe-custom')">
+                        <i class="fas fa-copy me-2"></i>Copy Code
+                    </button>
+                    <textarea id="iframe-custom" style="position: absolute; left: -9999px;">
+<iframe src="{{ url_for('live.embed_stream', stream_id=stream.id, _external=True) }}?show_info=1&show_watermark=1&show_viewers=1&theme=dark" width="800" height="450" frameborder="0" allowfullscreen></iframe>
+                    </textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Direct Stream URLs -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-link me-2"></i>Direct Stream URLs</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">These URLs can be used in various streaming applications and players.</p>
+                    
+                    <h6 class="mb-2"><i class="fas fa-play-circle me-2"></i>HLS Stream (Most Compatible)</h6>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="https://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyInputValue(this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    
+                    <h6 class="mb-2"><i class="fas fa-video me-2"></i>RTMP Stream (OBS/Streaming Apps)</h6>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="rtmp://hwosecurity.org/live/{{ stream.stream_key }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyInputValue(this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    
+                    <h6 class="mb-2"><i class="fas fa-shield-alt me-2"></i>RTMPS Stream (Secure)</h6>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="rtmps://hwosecurity.org/live/{{ stream.stream_key }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyInputValue(this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    
+                    <h6 class="mb-2"><i class="fas fa-bolt me-2"></i>WebRTC Stream (Low Latency)</h6>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="{{ url_for('webrtc.view_stream', stream_key=stream.stream_key, _external=True) }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyInputValue(this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="vlc://https://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8" class="btn btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-2"></i>Open in VLC Player
+                        </a>
+                        <a href="potplayer://https://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8" class="btn btn-outline-secondary">
+                            <i class="fas fa-external-link-alt me-2"></i>Open in PotPlayer
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ShareX / OBS Setup -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Streaming Software Setup</h5>
+                </div>
+                <div class="card-body">
+                    <h6>OBS Studio Configuration</h6>
+                    <ul class="list-unstyled ps-3">
+                        <li><strong>Stream Type:</strong> Custom Streaming Server</li>
+                        <li><strong>URL:</strong> rtmp://hwosecurity.org/live</li>
+                        <li><strong>Stream Key:</strong> {{ stream.stream_key }}</li>
+                        <li><strong>Video Bitrate:</strong> 2500-4000 Kbps</li>
+                        <li><strong>Audio Bitrate:</strong> 128-160 Kbps</li>
+                        <li><strong>Output Resolution:</strong> 1280x720 or 1920x1080</li>
+                        <li><strong>Keyframe Interval:</strong> 2 seconds</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <h6>XSplit Broadcaster</h6>
+                    <ul class="list-unstyled ps-3">
+                        <li><strong>Service:</strong> Custom RTMP</li>
+                        <li><strong>RTMP URL:</strong> rtmp://hwosecurity.org/live</li>
+                        <li><strong>Stream Key:</strong> {{ stream.stream_key }}</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Compatibility Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Compatibility</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">This stream is compatible with:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-desktop me-2"></i>Desktop Browsers</span>
+                            <span class="badge bg-success rounded-pill">All Modern</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-mobile-alt me-2"></i>Mobile Browsers</span>
+                            <span class="badge bg-success rounded-pill">iOS/Android</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-tablet-alt me-2"></i>Tablets</span>
+                            <span class="badge bg-success rounded-pill">All</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-play me-2"></i>Media Players</span>
+                            <span class="badge bg-success rounded-pill">VLC/MPV/PotPlayer</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-tv me-2"></i>Smart TVs</span>
+                            <span class="badge bg-info rounded-pill">Most Recent</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-shield-alt me-2"></i>HTTPS Support</span>
+                            <span class="badge bg-success rounded-pill">Yes</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Copy to clipboard function
+        function copyToClipboard(elementId) {
+            const textarea = document.getElementById(elementId);
+            textarea.select();
+            document.execCommand('copy');
+            alert('Embed code copied to clipboard!');
+        }
+        
+        // Copy input field value
+        function copyInputValue(button) {
+            const input = button.previousElementSibling;
+            input.select();
+            document.execCommand('copy');
+            
+            // Show temporary success indicator
+            const originalHtml = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i>';
+            button.classList.add('btn-success');
+            button.classList.remove('btn-outline-secondary');
+            
+            setTimeout(function() {
+                button.innerHTML = originalHtml;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-secondary');
+            }, 1500);
+        }
+        
+        // Make the functions available globally
+        window.copyToClipboard = copyToClipboard;
+        window.copyInputValue = copyInputValue;
+        
+        // Update custom embed code based on form options
+        const form = document.getElementById('embed-options-form');
+        const codeElement = document.getElementById('custom-embed-code');
+        const customTextarea = document.getElementById('iframe-custom');
+        
+        function updateEmbedCode() {
+            const showInfo = document.getElementById('show_info').checked ? 1 : 0;
+            const showWatermark = document.getElementById('show_watermark').checked ? 1 : 0;
+            const showViewers = document.getElementById('show_viewers').checked ? 1 : 0;
+            const theme = document.getElementById('theme').value;
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+            
+            const baseUrl = '{{ url_for("live.embed_stream", stream_id=stream.id, _external=True) }}';
+            const queryParams = `?show_info=${showInfo}&show_watermark=${showWatermark}&show_viewers=${showViewers}&theme=${theme}`;
+            
+            const iframeCode = `<iframe src="${baseUrl}${queryParams}" width="${width}" height="${height}" frameborder="0" allowfullscreen></iframe>`;
+            
+            codeElement.textContent = iframeCode;
+            customTextarea.value = iframeCode;
+        }
+        
+        // Add event listeners to form elements
+        const formElements = form.querySelectorAll('input, select');
+        formElements.forEach(element => {
+            element.addEventListener('change', updateEmbedCode);
+            element.addEventListener('input', updateEmbedCode);
+        });
+        
+        // Initial update
+        updateEmbedCode();
+    });
+</script>
+{% endblock %}

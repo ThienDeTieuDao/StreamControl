@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Set Up Live Stream - StreamLite{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="fas fa-plus-circle me-2"></i>Set Up Live Stream</h1>
+            <p class="lead text-muted">Configure your stream settings</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Stream Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('live.setup_stream') }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Stream Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" required maxlength="128">
+                            <div class="form-text">Choose a descriptive title for your stream (max 128 characters)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            <div class="form-text">Provide details about what you're streaming</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="category_id" class="form-label">Category</label>
+                            <select class="form-select" id="category_id" name="category_id">
+                                <option value="">-- Select Category --</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="thumbnail" class="form-label">Thumbnail Image</label>
+                            <input class="form-control" type="file" id="thumbnail" name="thumbnail" accept="image/*">
+                            <div class="form-text">Recommended size: 1280x720px (16:9 ratio)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_public" name="is_public" checked>
+                                <label class="form-check-label" for="is_public">Public Stream</label>
+                            </div>
+                            <div class="form-text">If enabled, your stream will be visible to everyone. Otherwise, only you can see it.</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('live.dashboard') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Stream</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Stream Information</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold">Streaming Process</h6>
+                    <ol class="mb-4">
+                        <li>Set up your stream details on this page</li>
+                        <li>Get your stream key from the dashboard</li>
+                        <li>Configure your streaming software (OBS, etc.)</li>
+                        <li>Start streaming from your software</li>
+                    </ol>
+                    
+                    <h6 class="fw-bold">Recommended Settings</h6>
+                    <ul class="mb-0">
+                        <li>Resolution: 1280x720 (720p)</li>
+                        <li>Framerate: 30 FPS</li>
+                        <li>Bitrate: 2500-4000 Kbps</li>
+                        <li>Keyframe Interval: 2 seconds</li>
+                        <li>Preset: veryfast or faster</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>Streaming Help</h5>
+                </div>
+                <div class="card-body">
+                    <h6>How to Stream with OBS Studio</h6>
+                    <p>After creating your stream, you'll get a unique stream key. Configure OBS as follows:</p>
+                    <ol class="mb-3">
+                        <li>Go to Settings > Stream</li>
+                        <li>Select "Custom..." as the service</li>
+                        <li>Enter the server URL: <code>rtmp://{{ request.host }}</code></li>
+                        <li>Enter your stream key</li>
+                        <li>Click "Start Streaming"</li>
+                    </ol>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Need more help? Check out our <a href="#" class="alert-link">streaming guide</a> for detailed instructions.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

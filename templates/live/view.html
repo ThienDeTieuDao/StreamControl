@@ -1,0 +1,942 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ stream.title }} - Live Stream - StreamLite{% endblock %}
+
+{% block extra_head %}
+<!-- Video.js CSS -->
+<link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet" />
+<!-- Video.js JavaScript -->
+<script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
+<!-- HLS.js for older browsers that don't support native HLS -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js"></script>
+<!-- DASH.js for MPEG-DASH support -->
+<script src="https://cdn.jsdelivr.net/npm/dash.js@4.7.1/dist/dash.all.min.js"></script>
+<!-- VideoJS DASH plugin -->
+<script src="https://cdn.jsdelivr.net/npm/videojs-contrib-dash@5.1.1/dist/videojs-dash.min.js"></script>
+<!-- VideoJS quality selector plugin -->
+<script src="https://cdn.jsdelivr.net/npm/videojs-contrib-quality-levels@4.0.0/dist/videojs-contrib-quality-levels.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/videojs-http-source-selector@1.1.6/dist/videojs-http-source-selector.min.js"></script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .video-container {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        background-color: #000;
+        border-radius: 0.25rem;
+        overflow: hidden;
+    }
+    
+    .video-container iframe,
+    .video-container video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .chat-container {
+        height: 400px;
+        overflow-y: auto;
+    }
+    
+    .chat-message {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .chat-message:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .chat-message .username {
+        font-weight: bold;
+        color: var(--bs-primary);
+    }
+    
+    .chat-message .timestamp {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    
+    .system-message {
+        background-color: rgba(13, 110, 253, 0.1);
+        text-align: center;
+        color: #6c757d;
+    }
+    
+    .stream-info-card {
+        transition: all 0.3s ease;
+    }
+    
+    .stream-info-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    @media (max-width: 767.98px) {
+        .chat-container {
+            height: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <div class="col-lg-9 pe-lg-3">
+            <!-- Stream Video -->
+            <div class="video-container mb-3">
+                {% if stream.is_live %}
+                <video id="stream-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" data-setup='{"fluid": true, "liveui": true, "html5": {"hls": {"overrideNative": false}}, "techOrder": ["html5"], "autoplay": true, "liveTracker": {"trackingThreshold": 0.5, "liveTolerance": 30}}'>
+                    <!-- Primary HLS source -->
+                    <source src="{{ url_for('live.serve_hls', filename=stream.stream_key + '.m3u8') }}" type="application/x-mpegURL">
+                    <!-- Alternative HLS source with absolute URL -->
+                    <source src="https://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8" type="application/x-mpegURL">
+                    <!-- Fallback message -->
+                    <p class="vjs-no-js">
+                        To view this video please enable JavaScript, and consider upgrading to a web browser that
+                        <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+                    </p>
+                </video>
+                <!-- Error message container -->
+                <div id="stream-error-container" style="display: none;">
+                    <div id="stream-retry-message" class="alert alert-info my-3" style="display: none;">
+                        <i class="fas fa-sync-alt fa-spin me-2"></i> Connecting to stream... If the stream doesn't appear in 10 seconds, <a href="#" id="retry-stream-btn" class="alert-link">click here to retry</a>.
+                    </div>
+                    <div id="stream-format-error" class="alert alert-warning my-3" style="display: none;">
+                        <i class="fas fa-exclamation-triangle me-2"></i> The media could not be loaded, either because the server or network failed or because the format is not supported. <a href="#" id="format-retry-btn" class="alert-link">Click here to try again</a>.
+                    </div>
+                    <div id="stream-network-error" class="alert alert-danger my-3" style="display: none;">
+                        <i class="fas fa-wifi-slash me-2"></i> Network error detected. Please check your internet connection. <a href="#" id="network-retry-btn" class="alert-link">Click here to retry</a>.
+                    </div>
+                </div>
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center h-100 bg-dark">
+                    {% if stream.thumbnail_path %}
+                    <img src="{{ url_for('media.serve_media', filename=stream.thumbnail_path.split('/')[-1]) }}" alt="{{ stream.title }}" class="img-fluid">
+                    {% else %}
+                    <div class="text-center">
+                        <i class="fas fa-video-slash fa-4x text-secondary mb-3"></i>
+                        <h4 class="text-light">Stream is offline</h4>
+                        <p class="text-muted">This stream is currently not active</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Stream Info -->
+            <div class="container mb-4">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h1 class="mb-2">
+                            {{ stream.title }}
+                            {% if stream.is_live %}
+                            <span class="badge bg-danger"><i class="fas fa-circle me-1"></i>LIVE</span>
+                            {% endif %}
+                        </h1>
+                        
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <i class="fas fa-eye me-1"></i> {{ stream.viewer_count }} watching now
+                            </div>
+                            
+                            {% if stream.started_at %}
+                            <div class="me-3">
+                                <i class="fas fa-clock me-1"></i> Started at {{ stream.started_at.strftime('%H:%M') }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if stream.category %}
+                            <div>
+                                <i class="fas fa-tag me-1"></i> 
+                                <a href="{{ url_for('media.category', category_id=stream.category.id) }}" class="text-decoration-none">
+                                    {{ stream.category.name }}
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex align-items-center mb-3">
+                            {% if current_user.is_authenticated %}
+                            <button class="btn btn-outline-primary me-2" id="follow-btn">
+                                <i class="fas fa-heart me-1"></i> Follow
+                            </button>
+                            <button class="btn btn-outline-info me-2" id="share-btn">
+                                <i class="fas fa-share-alt me-1"></i> Share
+                            </button>
+                            {% else %}
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login to Follow
+                            </a>
+                            <button class="btn btn-outline-info me-2" id="share-btn">
+                                <i class="fas fa-share-alt me-1"></i> Share
+                            </button>
+                            {% endif %}
+                            
+                            {% if current_user.is_authenticated and current_user.id == stream.user_id %}
+                            <a href="{{ url_for('live.stream_control', stream_id=stream.id) }}" class="btn btn-primary">
+                                <i class="fas fa-sliders-h me-1"></i> Control Panel
+                            </a>
+                            {% endif %}
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row mb-4">
+                            <div class="col-auto">
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                                    <i class="fas fa-user fa-2x text-light"></i>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <h5 class="mb-1">{{ stream.streamer.username }}</h5>
+                                <p class="text-muted mb-1">
+                                    <i class="fas fa-users me-2"></i>0 followers
+                                </p>
+                                {% if current_user.is_authenticated and current_user.id != stream.user_id %}
+                                <button class="btn btn-sm btn-primary" id="follow-streamer-btn">
+                                    <i class="fas fa-plus me-1"></i> Follow
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if stream.description %}
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Stream Description</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">{{ stream.description }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        {% if stream.is_live %}
+                        <div class="card mb-3 stream-info-card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-info-circle me-2"></i>Stream Information</h5>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fas fa-signal me-2"></i>Quality: {{ stream.stream_settings.get('resolution', '720p') }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-code me-2"></i><a href="{{ url_for('live.embed_codes', stream_id=stream.id) }}" target="_blank" class="text-white">Embed & Stream URLs</a>
+                                    </li>
+                                    <li class="mb-3">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="streamFormatsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-link me-1"></i> Stream URLs
+                                            </button>
+                                            <ul class="dropdown-menu" aria-labelledby="streamFormatsDropdown">
+                                                <li><a class="dropdown-item" href="#" onclick="copyToClipboard('https://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8')">
+                                                    <i class="fas fa-copy me-2"></i> Copy HLS URL (Players)
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="copyToClipboard('rtmp://hwosecurity.org/live/{{ stream.stream_key }}')">
+                                                    <i class="fas fa-copy me-2"></i> Copy RTMP URL (OBS)
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="copyToClipboard('rtmps://hwosecurity.org/live/{{ stream.stream_key }}')">
+                                                    <i class="fas fa-copy me-2"></i> Copy RTMPS URL (Secure)
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="copyToClipboard('{{ url_for('webrtc.view_stream', stream_key=stream.stream_key, _external=True) }}')">
+                                                    <i class="fas fa-copy me-2"></i> Copy WebRTC URL
+                                                </a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item" href="vlc://https://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8">
+                                                    <i class="fas fa-external-link-alt me-2"></i> Open in VLC
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="potplayer://https://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8">
+                                                    <i class="fas fa-external-link-alt me-2"></i> Open in PotPlayer
+                                                </a></li>
+                                            </ul>
+                                        </div>
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Bitrate: {{ stream.stream_settings.get('bitrate', '2500k') }}
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-film me-2"></i>FPS: {{ stream.stream_settings.get('fps', '30') }}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="card stream-info-card bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-user-plus me-2"></i>Support the Streamer</h5>
+                                <p class="card-text">Enjoy the content? Help support the streamer by following their channel or sharing the stream.</p>
+                                <div class="d-grid">
+                                    {% if current_user.is_authenticated and current_user.id != stream.user_id %}
+                                    <button class="btn btn-light" id="support-btn">
+                                        <i class="fas fa-heart me-2"></i>Support
+                                    </button>
+                                    {% elif not current_user.is_authenticated %}
+                                    <a href="{{ url_for('auth.login') }}" class="btn btn-light">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Login to Support
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="card mb-3 stream-info-card bg-secondary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-info-circle me-2"></i>Stream Status</h5>
+                                <p class="card-text">This stream is currently offline.</p>
+                                {% if current_user.is_authenticated %}
+                                <div class="d-grid">
+                                    <button class="btn btn-light" id="notify-btn">
+                                        <i class="fas fa-bell me-2"></i>Notify When Live
+                                    </button>
+                                </div>
+                                {% else %}
+                                <div class="d-grid">
+                                    <a href="{{ url_for('auth.login') }}" class="btn btn-light">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Login for Notifications
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="card stream-info-card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>Schedule</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-muted">No upcoming streams scheduled.</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3">
+            <!-- Live Chat -->
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Live Chat</h5>
+                </div>
+                <div class="card-body p-0 d-flex flex-column h-100">
+                    <div class="chat-container p-3" id="chat-messages">
+                        {% if stream.is_live %}
+                        <div class="text-center p-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Loading chat messages...</p>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted p-3">
+                            <i class="fas fa-comments fa-2x mb-2"></i>
+                            <p>Chat is offline</p>
+                            <p>Chat will be available when the stream goes live</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="p-3 border-top mt-auto">
+                        {% if current_user.is_authenticated and stream.is_live %}
+                        <form id="chat-form" class="d-flex">
+                            <input type="text" id="chat-input" class="form-control me-2" placeholder="Send a message..." {% if not stream.is_live %}disabled{% endif %}>
+                            <button type="submit" class="btn btn-primary" {% if not stream.is_live %}disabled{% endif %}>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                        {% elif not current_user.is_authenticated and stream.is_live %}
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i><a href="{{ url_for('auth.login') }}" class="alert-link">Login</a> to join the chat
+                        </div>
+                        {% else %}
+                        <form id="chat-form" class="d-flex">
+                            <input type="text" id="chat-input" class="form-control me-2" placeholder="Chat is offline..." disabled>
+                            <button type="submit" class="btn btn-primary" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Streams -->
+    {% if related_streams %}
+    <div class="container mt-4">
+        <h3 class="mb-3"><i class="fas fa-broadcast-tower me-2"></i>More Live Streams</h3>
+        <div class="row">
+            {% for related in related_streams %}
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card h-100 stream-card">
+                    <div class="position-relative">
+                        <div class="ratio ratio-16x9">
+                            {% if related.thumbnail_path %}
+                            <img src="{{ url_for('media.serve_media', filename=related.thumbnail_path.split('/')[-1]) }}" alt="{{ related.title }}" class="card-img-top">
+                            {% else %}
+                            <div class="bg-dark d-flex align-items-center justify-content-center">
+                                <i class="fas fa-video fa-3x text-secondary"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="position-absolute top-0 end-0 p-2">
+                            <span class="badge bg-danger"><i class="fas fa-circle me-1"></i>LIVE</span>
+                        </div>
+                        <div class="position-absolute bottom-0 start-0 p-2">
+                            <span class="badge bg-dark"><i class="fas fa-eye me-1"></i>{{ related.viewer_count }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ url_for('live.view_stream', stream_id=related.id) }}" class="text-decoration-none">
+                                {{ related.title|truncate(50) }}
+                            </a>
+                        </h5>
+                        <p class="card-text text-muted">{{ related.streamer.username }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if related.category %}
+                            <span class="badge bg-info">{{ related.category.name }}</span>
+                            {% else %}
+                            <span class="text-muted">Uncategorized</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <a href="{{ url_for('live.view_stream', stream_id=related.id) }}" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-play me-2"></i>Watch
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Recent Media -->
+    {% if recent_media %}
+    <div class="container mt-4 mb-4">
+        <h3 class="mb-3"><i class="fas fa-play-circle me-2"></i>Recent Videos from {{ stream.streamer.username }}</h3>
+        <div class="row">
+            {% for media in recent_media %}
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card h-100 stream-card">
+                    <div class="position-relative">
+                        <div class="ratio ratio-16x9">
+                            {% if media.thumbnail_path %}
+                            <img src="{{ url_for('media.serve_media', filename=media.thumbnail_path.split('/')[-1]) }}" alt="{{ media.title }}" class="card-img-top">
+                            {% else %}
+                            <div class="bg-dark d-flex align-items-center justify-content-center">
+                                <i class="fas fa-film fa-3x text-secondary"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="position-absolute bottom-0 end-0 p-2">
+                            <span class="badge bg-dark">{{ media.duration|format_duration }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ url_for('media.watch', media_id=media.id) }}" class="text-decoration-none">
+                                {{ media.title|truncate(50) }}
+                            </a>
+                        </h5>
+                        <p class="card-text text-muted">{{ media.created_at.strftime('%b %d, %Y') }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if media.category %}
+                            <span class="badge bg-info">{{ media.category.name }}</span>
+                            {% else %}
+                            <span class="text-muted">Uncategorized</span>
+                            {% endif %}
+                            <small class="text-muted">
+                                <i class="fas fa-eye me-1"></i>{{ media.views }}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <a href="{{ url_for('media.watch', media_id=media.id) }}" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-play me-2"></i>Watch
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        
+        // Function to copy URL to clipboard
+        window.copyToClipboard = function(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            // Show a temporary tooltip/alert
+            alert('URL copied to clipboard: ' + text);
+        };
+        
+        // Initialize Video.js player with HLS support
+        {% if stream.is_live %}
+        const player = videojs('stream-player', {
+            liveui: true,
+            html5: { hls: { overrideNative: false } },
+            autoplay: true,
+            preload: 'auto',
+            loadingSpinner: true,
+            errorDisplay: true,
+            responsive: true,
+            fluid: true,
+            controlBar: {
+                playToggle: false,
+                currentTimeDisplay: false,
+                timeDivider: false,
+                durationDisplay: false,
+                progressControl: false,
+                liveDisplay: true,
+                qualitySelector: true
+            },
+            // Enable HTTP source selector for quality options
+            plugins: {
+                httpSourceSelector: {
+                    default: 'auto'
+                }
+            }
+        });
+        
+        // Register VideoJS plugins
+        if (player.httpSourceSelector) {
+            player.httpSourceSelector();
+        }
+        
+        // Error handling for VideoJS
+        player.on('error', function() {
+            console.error('VideoJS error:', player.error());
+            
+            // Show appropriate error message
+            const errorContainer = document.getElementById('stream-error-container');
+            errorContainer.style.display = 'block';
+            
+            // Format error based on error code
+            const errorCode = player.error().code;
+            if (errorCode === 2) {
+                // Network error
+                document.getElementById('stream-network-error').style.display = 'block';
+            } else if (errorCode === 3 || errorCode === 4) {
+                // Format error or media source error
+                document.getElementById('stream-format-error').style.display = 'block';
+            } else {
+                // Generic error or retry message
+                document.getElementById('stream-retry-message').style.display = 'block';
+            }
+        });
+        
+        // If HLS.js is available and browser doesn't support HLS natively, use HLS.js
+        if (window.Hls && !player.canPlayType('application/vnd.apple.mpegurl')) {
+            const videoElement = document.getElementById('stream-player_html5_api');
+            if (videoElement) {
+                // Configure HLS.js with recovery options
+                const hlsConfig = {
+                    capLevelToPlayerSize: true,
+                    autoStartLoad: true,
+                    startLevel: -1, // Use adaptive bitrate
+                    debug: false,
+                    // Error recovery configuration
+                    maxLoadingDelay: 4,
+                    maxRetryCount: 8,
+                    maxMaxBufferLength: 60,
+                    lowLatencyMode: true,
+                    backBufferLength: 90
+                };
+                
+                const hls = new Hls(hlsConfig);
+                
+                // Try loading from relative URL first
+                const streamUrl = '{{ url_for("live.serve_hls", filename=stream.stream_key + ".m3u8") }}';
+                hls.loadSource(streamUrl);
+                hls.attachMedia(videoElement);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    player.play().catch(function(error) {
+                        console.warn('Autoplay prevented:', error);
+                    });
+                    
+                    // Setup quality levels if available
+                    if (hls.levels && hls.levels.length > 1) {
+                        console.log('HLS quality levels:', hls.levels);
+                    }
+                });
+                
+                // Handle HLS.js errors with enhanced recovery
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    console.error('HLS error:', data);
+                    
+                    if (data.fatal) {
+                        const errorContainer = document.getElementById('stream-error-container');
+                        errorContainer.style.display = 'block';
+                        
+                        switch(data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                console.log('Network error, trying to recover...');
+                                document.getElementById('stream-network-error').style.display = 'block';
+                                
+                                // Try to recover network error
+                                hls.startLoad();
+                                
+                                // If failed with relative URL, try absolute URL
+                                if (data.response && data.response.code === 404) {
+                                    console.log('Trying alternative stream URL...');
+                                    hls.loadSource('https://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8');
+                                }
+                                break;
+                                
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                console.log('Media error, trying to recover...');
+                                document.getElementById('stream-format-error').style.display = 'block';
+                                
+                                // Multiple recovery attempts for media errors
+                                hls.recoverMediaError();
+                                break;
+                                
+                            default:
+                                console.error('Fatal error, cannot recover:', data.details);
+                                document.getElementById('stream-format-error').style.display = 'block';
+                                break;
+                        }
+                    }
+                });
+                
+                // Store hls instance for retry buttons
+                window.hlsInstance = hls;
+            }
+        }
+        
+        // Setup retry buttons
+        document.getElementById('retry-stream-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            location.reload();
+        });
+        
+        document.getElementById('format-retry-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Try alternative sources
+            if (window.hlsInstance) {
+                document.getElementById('stream-format-error').style.display = 'none';
+                document.getElementById('stream-retry-message').style.display = 'block';
+                
+                // Try both URLs
+                try {
+                    window.hlsInstance.loadSource('https://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8');
+                    window.hlsInstance.startLoad();
+                } catch (e) {
+                    console.error('Error during retry:', e);
+                    location.reload();
+                }
+            } else {
+                location.reload();
+            }
+        });
+        
+        document.getElementById('network-retry-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            location.reload();
+        });
+        
+        // Show retry message after 5 seconds if still loading
+        setTimeout(function() {
+            if (player.readyState() < 1 && !document.getElementById('stream-error-container').style.display === 'block') {
+                document.getElementById('stream-error-container').style.display = 'block';
+                document.getElementById('stream-retry-message').style.display = 'block';
+            }
+        }, 5000);
+        {% endif %}
+        
+        let lastMessageId = 0;
+        
+        {% if stream.is_live and current_user.is_authenticated %}
+        // Function to add a chat message
+        function addChatMessage(message) {
+            // Clear loading message if present
+            if (chatMessages.querySelector('.spinner-border')) {
+                chatMessages.innerHTML = '';
+            }
+            
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message');
+            
+            if (message.is_system_message) {
+                messageElement.classList.add('system-message');
+                messageElement.innerHTML = `<small>${message.message}</small>`;
+            } else {
+                messageElement.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <span class="username">${message.username}</span>
+                        <span class="timestamp">${message.timestamp}</span>
+                    </div>
+                    <div>${message.message}</div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            lastMessageId = message.id;
+        }
+        
+        // Fetch chat messages
+        async function getMessages() {
+            try {
+                const response = await fetch(`{{ url_for('live.get_chat', stream_id=stream.id) }}?last_id=${lastMessageId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.messages.length > 0) {
+                        data.messages.forEach(message => {
+                            addChatMessage(message);
+                        });
+                    } else if (lastMessageId === 0 && chatMessages.querySelector('.spinner-border')) {
+                        // If no messages and we're still showing the loading spinner, show empty state
+                        chatMessages.innerHTML = `
+                            <div class="text-center text-muted p-3">
+                                <i class="fas fa-comments fa-2x mb-2"></i>
+                                <p>No messages yet</p>
+                                <p>Be the first to say something!</p>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+            }
+        }
+        
+        // Send chat message
+        if (chatForm) {
+            chatForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const message = chatInput.value.trim();
+                if (!message) return;
+                
+                try {
+                    const response = await fetch(`{{ url_for('live.post_chat', stream_id=stream.id) }}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message }),
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        addChatMessage(data);
+                        chatInput.value = '';
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                }
+            });
+        }
+        
+        // Set up polling for messages
+        setInterval(getMessages, 3000);
+        
+        // Initial message fetch
+        getMessages();
+        {% endif %}
+        
+        // Update viewer count
+        async function updateViewerCount() {
+            try {
+                const response = await fetch(`{{ url_for('live.get_viewers', stream_id=stream.id) }}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.querySelectorAll('.viewer-count').forEach(element => {
+                        element.textContent = data.viewer_count;
+                    });
+                }
+            } catch (error) {
+                console.error('Error updating viewer count:', error);
+            }
+        }
+        
+        {% if stream.is_live %}
+        // Update viewer count every 30 seconds
+        setInterval(updateViewerCount, 30000);
+        
+        // Check stream status periodically
+        setInterval(function() {
+            fetch('{{ url_for("live.check_stream_status", stream_id=stream.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.is_live) {
+                        // If server says not live but page shows live, refresh the page
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking stream status:', error);
+                });
+        }, 60000);  // Check every minute
+                const hls = new Hls({
+                    debug: false,
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 90,
+                    maxBufferLength: 30,
+                    maxMaxBufferLength: 600,
+                    maxBufferSize: 60 * 1000 * 1000, // 60MB
+                    maxBufferHole: 0.5,
+                    highBufferWatchdogPeriod: 2,
+                    nudgeMaxRetry: 5
+                });
+                
+                const videoElement = document.getElementById('stream-player_html5_api');
+                hls.loadSource('https://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8');
+                hls.attachMedia(videoElement);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    videoElement.play();
+                    document.getElementById('stream-retry-message').style.display = 'none';
+                });
+                
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    console.log('HLS.js error:', data);
+                    if (data.fatal) {
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                console.log('Network error, trying HTTP fallback');
+                                hls.loadSource('http://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8');
+                                hls.startLoad();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                console.log('Media error, trying to recover');
+                                hls.recoverMediaError();
+                                break;
+                            default:
+                                console.log('Fatal error, reloading player');
+                                document.getElementById('stream-retry-message').style.display = 'block';
+                                hls.destroy();
+                                
+                                // Create new HLS instance
+                                setTimeout(function() {
+                                    const newHls = new Hls();
+                                    newHls.loadSource('http://hwosecurity.org/live/hls/{{ stream.stream_key }}.m3u8');
+                                    newHls.attachMedia(videoElement);
+                                    newHls.on(Hls.Events.MANIFEST_PARSED, function() {
+                                        videoElement.play();
+                                    });
+                                }, 2000);
+                                break;
+                        }
+                    }
+                });
+            }
+        }
+        {% endif %}
+        
+        // Social share functionality
+        const shareBtn = document.getElementById('share-btn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', function() {
+                if (navigator.share) {
+                    navigator.share({
+                        title: '{{ stream.title }}',
+                        text: 'Check out this live stream on StreamLite!',
+                        url: window.location.href
+                    })
+                    .catch(error => console.log('Error sharing:', error));
+                } else {
+                    // Fallback for browsers that don't support Web Share API
+                    prompt('Copy this link to share:', window.location.href);
+                }
+            });
+        }
+        
+        // Support/follow buttons functionality (placeholder)
+        const followBtn = document.getElementById('follow-btn');
+        const followStreamerBtn = document.getElementById('follow-streamer-btn');
+        const supportBtn = document.getElementById('support-btn');
+        const notifyBtn = document.getElementById('notify-btn');
+        
+        if (followBtn) {
+            followBtn.addEventListener('click', function() {
+                // Toggle follow state
+                const isFollowing = this.classList.contains('btn-primary');
+                if (isFollowing) {
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-outline-primary');
+                    this.innerHTML = '<i class="fas fa-heart me-1"></i> Follow';
+                } else {
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('btn-primary');
+                    this.innerHTML = '<i class="fas fa-heart me-1"></i> Following';
+                }
+            });
+        }
+        
+        if (followStreamerBtn) {
+            followStreamerBtn.addEventListener('click', function() {
+                const isFollowing = this.classList.contains('btn-outline-primary');
+                if (isFollowing) {
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('btn-primary');
+                    this.innerHTML = '<i class="fas fa-user-check me-1"></i> Following';
+                } else {
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-outline-primary');
+                    this.innerHTML = '<i class="fas fa-plus me-1"></i> Follow';
+                }
+            });
+        }
+        
+        if (supportBtn) {
+            supportBtn.addEventListener('click', function() {
+                alert('Support functionality coming soon!');
+            });
+        }
+        
+        if (notifyBtn) {
+            notifyBtn.addEventListener('click', function() {
+                if (this.classList.contains('btn-light')) {
+                    this.classList.remove('btn-light');
+                    this.classList.add('btn-primary');
+                    this.innerHTML = '<i class="fas fa-bell-slash me-2"></i>Cancel Notification';
+                } else {
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-light');
+                    this.innerHTML = '<i class="fas fa-bell me-2"></i>Notify When Live';
+                }
+            });
+        }
+    });
+</script>
+
+<!-- Include Support Chat Widget -->
+{% if current_user.is_authenticated %}
+    {% include 'support/widget.html' %}
+{% endif %}
+{% endblock %}

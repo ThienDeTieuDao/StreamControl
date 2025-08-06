@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Media - StreamLite{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Upload Media</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('media.upload') }}" enctype="multipart/form-data" id="uploadForm">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category_id" class="form-label">Category</label>
+                        <select class="form-select" id="category_id" name="category_id">
+                            <option value="">-- Select Category --</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="media_file" class="form-label">Media File *</label>
+                        <input type="file" class="form-control" id="media_file" name="media_file" required>
+                        <small class="form-text text-muted">
+                            Supported formats: MP4, AVI, MKV, MP3, WAV, OGG, etc. (Max size: 1GB)
+                        </small>
+                        <div class="progress mt-3 d-none" id="uploadProgress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_public" name="is_public" checked>
+                        <label class="form-check-label" for="is_public">Make public</label>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="uploadButton">
+                            <i class="fas fa-upload me-2"></i> Upload
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endblock %}

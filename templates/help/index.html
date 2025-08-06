@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Help Center{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="mb-4"><i class="fas fa-question-circle me-2"></i>Help Center</h1>
+            <p class="lead">Welcome to the StreamLite Help Center. Find guides, tutorials, and answers to common questions below.</p>
+        </div>
+    </div>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    
+    <div class="row mt-4">
+        <!-- Quick Help Search -->
+        <div class="col-lg-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <form action="{{ url_for('help.index') }}" method="get" class="d-flex">
+                        <input type="text" name="q" class="form-control form-control-lg me-2" placeholder="Search for help..." value="{{ request.args.get('q', '') }}">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Streaming Guides -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-book me-2"></i>Streaming Guides & Tutorials</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-video me-2"></i>OBS Studio Setup</h5>
+                                    <p>Learn how to configure OBS Studio for streaming to our platform with optimal settings.</p>
+                                    <a href="{{ url_for('help.obs_setup') }}" class="btn btn-primary">Read Guide</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-broadcast-tower me-2"></i>RTMP Streaming</h5>
+                                    <p>Step-by-step guide to setting up RTMP streaming for various streaming software.</p>
+                                    <a href="{{ url_for('help.rtmp_guide') }}" class="btn btn-primary">Read Guide</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-bolt me-2"></i>WebRTC Streaming</h5>
+                                    <p>How to use our ultra-low latency WebRTC streaming for real-time interaction.</p>
+                                    <a href="{{ url_for('help.webrtc_guide') }}" class="btn btn-primary">Read Guide</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-mobile-alt me-2"></i>Mobile Streaming</h5>
+                                    <p>Guide to streaming from mobile devices using compatible apps.</p>
+                                    <a href="#" class="btn btn-secondary disabled">Coming Soon</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Troubleshooting Guides -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning">
+                    <h3 class="mb-0"><i class="fas fa-wrench me-2"></i>Troubleshooting</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Connection Issues</h5>
+                                    <p>Solutions for common streaming connection problems and network troubleshooting.</p>
+                                    <a href="#" class="btn btn-outline-warning">View Solutions</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-volume-mute me-2"></i>Audio Problems</h5>
+                                    <p>Fix common audio issues including echo, noise, sync problems, and volume levels.</p>
+                                    <a href="#" class="btn btn-outline-warning">View Solutions</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-spinner me-2"></i>Buffering & Performance</h5>
+                                    <p>How to resolve viewer buffering issues and improve stream performance.</p>
+                                    <a href="#" class="btn btn-outline-warning">View Solutions</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-desktop me-2"></i>Video Quality Issues</h5>
+                                    <p>Solutions for video artifacts, pixelation, frame drops, and quality problems.</p>
+                                    <a href="#" class="btn btn-outline-warning">View Solutions</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- FAQ Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0"><i class="fas fa-question-circle me-2"></i>Frequently Asked Questions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faqOne">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false">
+                                    What streaming software can I use?
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="faqOne" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    You can use OBS Studio, Streamlabs OBS, XSplit, or any RTMP-compatible streaming software. We also offer WebRTC streaming directly from your browser.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faqTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false">
+                                    What is my stream key and where do I find it?
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="faqTwo" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Your stream key is a unique identifier used to authenticate your stream. You can find it in your dashboard under "Live Streaming" > "Stream Settings". Keep this key private.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faqThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false">
+                                    What internet connection do I need?
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="faqThree" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    For 720p streaming at 30fps, we recommend at least 5Mbps upload speed. For 1080p at 60fps, we recommend 12Mbps or higher. You can check your speed at <a href="https://speedtest.net" target="_blank">speedtest.net</a>.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faqFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false">
+                                    How do I embed my stream on my website?
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="faqFour" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Go to your stream page and click "Embed & Stream URLs". You'll find multiple embed code options that you can copy and paste into your website's HTML.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faqFive">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false">
+                                    What's the difference between RTMP and WebRTC?
+                                </button>
+                            </h2>
+                            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="faqFive" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    RTMP is a traditional streaming protocol with broader compatibility but higher latency (5-20 seconds). WebRTC offers ultra-low latency (sub-second) but may have compatibility limitations with some devices/browsers.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a href="{{ url_for('help.faq') }}" class="btn btn-info">View All FAQs</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Support -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-headset me-2"></i>Contact Support</h3>
+                </div>
+                <div class="card-body">
+                    <p>Can't find the answer you're looking for? Our support team is here to help!</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('help.contact') }}" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

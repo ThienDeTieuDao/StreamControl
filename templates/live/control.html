@@ -1,0 +1,774 @@
+{% extends 'base.html' %}
+
+{% block title %}Stream Control Panel - StreamLite{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stream-stats {
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+    
+    .stats-card {
+        transition: all 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .preview-container {
+        width: 100%;
+        height: 0;
+        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        position: relative;
+        background-color: #000;
+        border-radius: 0.25rem;
+        overflow: hidden;
+    }
+    
+    .preview-container iframe,
+    .preview-container video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .chat-container {
+        height: 350px;
+        overflow-y: auto;
+    }
+    
+    .chat-message {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .chat-message:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .chat-message .username {
+        font-weight: bold;
+        color: var(--bs-primary);
+    }
+    
+    .chat-message .timestamp {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    
+    .system-message {
+        background-color: rgba(13, 110, 253, 0.1);
+        text-align: center;
+        color: #6c757d;
+    }
+    
+    .stream-key-container {
+        position: relative;
+    }
+    
+    .stream-key-tooltip {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: rgba(25, 135, 84, 0.9);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        display: none;
+    }
+    
+    @media (max-width: 767.98px) {
+        .stream-stats {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-sliders-h me-2"></i>Stream Control Panel</h1>
+            <p class="lead text-muted">{{ stream.title }}</p>
+        </div>
+        <div class="col-md-4 text-end align-self-center">
+            <a href="{{ url_for('live.view_stream', stream_id=stream.id) }}" class="btn btn-primary">
+                <i class="fas fa-eye me-2"></i>View Stream
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card h-100 bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6 class="mb-2"><i class="fas fa-eye me-2"></i>VIEWERS</h6>
+                    <div class="stream-stats mb-2" id="viewer-count">{{ stream.viewer_count }}</div>
+                    <small>Current viewers</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100 bg-success text-white">
+                <div class="card-body text-center">
+                    <h6 class="mb-2"><i class="fas fa-comment me-2"></i>CHAT</h6>
+                    <div class="stream-stats mb-2" id="chat-count">0</div>
+                    <small>Chat messages</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100 bg-info text-white">
+                <div class="card-body text-center">
+                    <h6 class="mb-2"><i class="fas fa-clock me-2"></i>UPTIME</h6>
+                    <div class="stream-stats mb-2" id="uptime">
+                        {% if stream.is_live and stream.started_at %}
+                        00:00:00
+                        {% else %}
+                        --:--:--
+                        {% endif %}
+                    </div>
+                    <small>Stream duration</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100 bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h6 class="mb-2"><i class="fas fa-signal me-2"></i>STATUS</h6>
+                    <div class="stream-stats mb-2">
+                        {% if stream.is_live %}
+                        <span class="badge bg-danger">LIVE</span>
+                        {% else %}
+                        <span class="badge bg-secondary">OFFLINE</span>
+                        {% endif %}
+                    </div>
+                    <small>Stream health: Good</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-video me-2"></i>Stream Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="preview-container">
+                        {% if stream.is_live %}
+                        <video id="stream-preview" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" data-setup='{"fluid": true}'>
+                            <source src="https://hwosecurity.org/hls/{{ stream.stream_key }}.m3u8" type="application/x-mpegURL">
+                            <p class="vjs-no-js">
+                                To view this video please enable JavaScript, and consider upgrading to a web browser that
+                                <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+                            </p>
+                        </video>
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100 bg-dark">
+                            {% if stream.thumbnail_path %}
+                            <img src="{{ url_for('media.serve_media', filename=stream.thumbnail_path.split('/')[-1]) }}" alt="{{ stream.title }}" class="img-fluid">
+                            {% else %}
+                            <div class="text-center">
+                                <i class="fas fa-video fa-4x text-secondary mb-3"></i>
+                                <h4 class="text-light">Stream is offline</h4>
+                                <p class="text-muted">Start streaming to see a preview</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Stream Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Stream Key:</label>
+                                <div class="stream-key-container">
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="stream-key" value="{{ stream.stream_key }}" readonly>
+                                        <button class="btn btn-outline-secondary" type="button" id="toggle-key">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary" type="button" id="copy-key">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    <div class="stream-key-tooltip" id="copy-tooltip">Copied!</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">RTMP Server URL (Standard):</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" value="rtmp://hwosecurity.org/live" readonly>
+                                    <button class="btn btn-outline-primary" type="button" id="copy-url-rtmp">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">Use this for streaming software like OBS Studio</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">RTMPS Server URL (Secure):</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" value="rtmps://hwosecurity.org:1936/live" readonly>
+                                    <button class="btn btn-outline-primary" type="button" id="copy-url-rtmps">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">Use this for secure streaming (recommended)</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Embed Your Stream:</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" id="embed-code" value='<iframe src="{{ url_for("live.embed_stream", stream_id=stream.id, _external=True) }}" width="640" height="360" frameborder="0" allowfullscreen></iframe>' readonly>
+                                    <button class="btn btn-outline-primary" type="button" id="copy-embed">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <small class="text-muted">Copy this code to embed your stream on your website</small>
+                                    <div>
+                                        <a href="{{ url_for('live.embed_stream', stream_id=stream.id) }}" target="_blank" class="btn btn-sm btn-outline-secondary me-1">
+                                            <i class="fas fa-external-link-alt me-1"></i>Preview
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#customizeEmbedModal">
+                                            <i class="fas fa-cog me-1"></i>Customize
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold">Status:</label>
+                                    <div>
+                                        {% if stream.is_live %}
+                                        <span class="badge bg-danger"><i class="fas fa-circle me-1"></i>LIVE since {{ stream.started_at.strftime('%H:%M') }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary"><i class="fas fa-clock me-1"></i>OFFLINE</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-6">
+                                    <label class="form-label fw-bold">Category:</label>
+                                    <div>
+                                        {% if stream.category %}
+                                        <span class="badge bg-secondary">{{ stream.category.name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">Uncategorized</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Stream Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <form action="{{ url_for('live.toggle_stream', stream_id=stream.id) }}" method="post">
+                                    <button type="submit" class="btn btn-{{ 'danger' if stream.is_live else 'success' }} btn-lg w-100">
+                                        {% if stream.is_live %}
+                                        <i class="fas fa-stop-circle me-2"></i>Stop Stream
+                                        {% else %}
+                                        <i class="fas fa-play-circle me-2"></i>Start Stream
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i>To change stream settings, go to the <a href="{{ url_for('live.edit_stream', stream_id=stream.id) }}" class="alert-link">Edit Stream</a> page.
+                            </div>
+                            
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                    Resolution
+                                    <span class="badge bg-secondary">{{ stream.stream_settings.get('resolution', '720p') }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                    Framerate
+                                    <span class="badge bg-secondary">{{ stream.stream_settings.get('fps', 30) }} FPS</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                    Video Codec
+                                    <span class="badge bg-secondary">{{ stream.stream_settings.get('video_codec', 'h264') }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                    Audio Codec
+                                    <span class="badge bg-secondary">{{ stream.stream_settings.get('audio_codec', 'aac') }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                                    Bitrate
+                                    <span class="badge bg-secondary">{{ stream.stream_settings.get('bitrate', '2500k') }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Stream Analytics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-area fa-4x text-muted mb-3"></i>
+                        <h4>Analytics Coming Soon</h4>
+                        <p class="text-muted">We're working on detailed analytics for your streams.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Live Chat</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="p-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>This is a live view of your stream's chat
+                        </small>
+                    </div>
+                    <div class="chat-container p-3" id="chat-messages">
+                        <div class="text-center text-muted p-3">
+                            <i class="fas fa-comments fa-2x mb-2"></i>
+                            <p>No messages yet</p>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 border-top">
+                        <form id="chat-form" class="d-flex">
+                            <input type="text" id="chat-input" class="form-control me-2" placeholder="Send a message...">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>Streaming Help</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Troubleshooting Common Issues</h6>
+                    <ul class="mb-3">
+                        <li>Check your internet connection</li>
+                        <li>Verify you're using the correct stream key</li>
+                        <li>Make sure your encoder settings match our recommendations</li>
+                        <li>Try lowering your bitrate if you're experiencing dropped frames</li>
+                        <li>Restart your streaming software</li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Need more help? Check out our <a href="{{ url_for('live.streaming_guide') }}" class="alert-link">streaming guide</a> for detailed instructions.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-wrench me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('live.edit_stream', stream_id=stream.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Stream Settings
+                        </a>
+                        
+                        <form action="{{ url_for('live.toggle_stream', stream_id=stream.id) }}" method="post">
+                            <button type="submit" class="btn btn-{{ 'danger' if stream.is_live else 'success' }} w-100 my-2">
+                                {% if stream.is_live %}
+                                <i class="fas fa-stop-circle me-2"></i>Stop Stream
+                                {% else %}
+                                <i class="fas fa-play-circle me-2"></i>Start Stream
+                                {% endif %}
+                            </button>
+                        </form>
+                        <a href="{{ url_for('live.stream_analytics', stream_id=stream.id) }}" class="btn btn-outline-info">
+                            <i class="fas fa-chart-line me-2"></i>View Detailed Analytics
+                        </a>
+                        <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash-alt me-2"></i>Delete Stream
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the stream <strong>{{ stream.title }}</strong>?</p>
+                    <p class="text-danger">This action cannot be undone. All stream data, chat history, and analytics will be permanently deleted.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form action="{{ url_for('live.delete_stream', stream_id=stream.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger">Delete Stream</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Customize Embed Modal -->
+    <div class="modal fade" id="customizeEmbedModal" tabindex="-1" aria-labelledby="customizeEmbedModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="customizeEmbedModalLabel">Customize Embed</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Display Options</label>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="show-info" checked>
+                                    <label class="form-check-label" for="show-info">Show stream information</label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="show-watermark" checked>
+                                    <label class="form-check-label" for="show-watermark">Show StreamLite watermark</label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="show-viewers" checked>
+                                    <label class="form-check-label" for="show-viewers">Show viewer count</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Theme</label>
+                                <select class="form-select" id="embed-theme">
+                                    <option value="dark" selected>Dark</option>
+                                    <option value="light">Light</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Size (pixels)</label>
+                                <div class="input-group mb-2">
+                                    <input type="number" class="form-control" id="embed-width" value="640">
+                                    <span class="input-group-text">×</span>
+                                    <input type="number" class="form-control" id="embed-height" value="360">
+                                </div>
+                                <small class="text-muted">Standard aspect ratios: 16:9, 4:3</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>Changes will be reflected in the embed code after you apply them.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="update-embed-code" data-bs-dismiss="modal">Apply Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleKeyButton = document.getElementById('toggle-key');
+        const streamKeyInput = document.getElementById('stream-key');
+        const copyKeyButton = document.getElementById('copy-key');
+        const copyUrlButton = document.getElementById('copy-url');
+        const copyEmbedButton = document.getElementById('copy-embed');
+        const copyTooltip = document.getElementById('copy-tooltip');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const viewerCount = document.getElementById('viewer-count');
+        const chatCount = document.getElementById('chat-count');
+        const uptimeElement = document.getElementById('uptime');
+        
+        let messageCount = 0;
+        let lastMessageId = 0;
+        
+        // Ensure stream key is hidden by default
+        if (streamKeyInput) {
+            streamKeyInput.type = 'password';
+        }
+        
+        // Toggle stream key visibility
+        if (toggleKeyButton) {
+            toggleKeyButton.addEventListener('click', function() {
+                const isPassword = streamKeyInput.type === 'password';
+                streamKeyInput.type = isPassword ? 'text' : 'password';
+                this.innerHTML = isPassword ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+            });
+        }
+        
+        // Copy stream key
+        if (copyKeyButton) {
+            copyKeyButton.addEventListener('click', function() {
+                streamKeyInput.type = 'text';
+                streamKeyInput.select();
+                document.execCommand('copy');
+                streamKeyInput.type = 'password';
+                
+                // Show tooltip
+                copyTooltip.style.display = 'block';
+                setTimeout(() => {
+                    copyTooltip.style.display = 'none';
+                }, 2000);
+            });
+        }
+        
+        // Copy server URL
+        if (copyUrlButton) {
+            copyUrlButton.addEventListener('click', function() {
+                const urlInput = this.previousElementSibling;
+                urlInput.select();
+                document.execCommand('copy');
+            });
+        }
+        
+        // Copy embed code
+        if (copyEmbedButton) {
+            copyEmbedButton.addEventListener('click', function() {
+                const embedInput = document.getElementById('embed-code');
+                embedInput.select();
+                document.execCommand('copy');
+                alert('Embed code copied to clipboard!');
+            });
+        }
+        
+        // Update embed code based on customization options
+        const updateEmbedBtn = document.getElementById('update-embed-code');
+        const showInfo = document.getElementById('show-info');
+        const showWatermark = document.getElementById('show-watermark');
+        const showViewers = document.getElementById('show-viewers');
+        const embedTheme = document.getElementById('embed-theme');
+        const embedWidth = document.getElementById('embed-width');
+        const embedHeight = document.getElementById('embed-height');
+        const embedCode = document.getElementById('embed-code');
+        
+        if (updateEmbedBtn) {
+            updateEmbedBtn.addEventListener('click', function() {
+                const baseUrl = '{{ url_for("live.embed_stream", stream_id=stream.id, _external=True) }}';
+                const params = new URLSearchParams();
+                
+                params.append('show_info', showInfo.checked ? '1' : '0');
+                params.append('show_watermark', showWatermark.checked ? '1' : '0');
+                params.append('show_viewers', showViewers.checked ? '1' : '0');
+                params.append('theme', embedTheme.value);
+                
+                // Get width and height
+                const width = embedWidth ? embedWidth.value : 640;
+                const height = embedHeight ? embedHeight.value : 360;
+                
+                const embedUrl = baseUrl + '?' + params.toString();
+                embedCode.value = `<iframe src="${embedUrl}" width="${width}" height="${height}" frameborder="0" allowfullscreen></iframe>`;
+                
+                // Show feedback toast instead of alert
+                const toast = document.createElement('div');
+                toast.className = 'position-fixed bottom-0 end-0 p-3';
+                toast.style.zIndex = '9999';
+                toast.innerHTML = `
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header">
+                            <strong class="me-auto">Embed Updated</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            Embed code has been updated with your customization options!
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            });
+        }
+        
+        // Function to add a chat message
+        function addChatMessage(message) {
+            // Clear "no messages" placeholder if it exists
+            if (chatMessages.querySelector('.text-center')) {
+                chatMessages.innerHTML = '';
+            }
+            
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message');
+            
+            if (message.is_system) {
+                messageElement.classList.add('system-message');
+                messageElement.innerHTML = `<small>${message.message}</small>`;
+            } else {
+                messageElement.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <span class="username">${message.username}</span>
+                        <span class="timestamp">${message.timestamp}</span>
+                    </div>
+                    <div>${message.message}</div>
+                `;
+                messageCount++;
+                chatCount.textContent = messageCount;
+            }
+            
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            lastMessageId = message.id;
+        }
+        
+        // Fetch chat messages
+        async function getMessages() {
+            try {
+                const response = await fetch(`{{ url_for('live.get_chat', stream_id=stream.id) }}?last_id=${lastMessageId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.messages.length > 0) {
+                        data.messages.forEach(message => {
+                            addChatMessage(message);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+            }
+        }
+        
+        // Send chat message
+        if (chatForm) {
+            chatForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const message = chatInput.value.trim();
+                if (!message) return;
+                
+                try {
+                    const response = await fetch(`{{ url_for('live.post_chat', stream_id=stream.id) }}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message }),
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        addChatMessage(data);
+                        chatInput.value = '';
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                }
+            });
+        }
+        
+        // Update viewer count
+        async function updateViewerCount() {
+            try {
+                const response = await fetch(`{{ url_for('live.get_viewers', stream_id=stream.id) }}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    viewerCount.textContent = data.viewer_count;
+                }
+            } catch (error) {
+                console.error('Error updating viewer count:', error);
+            }
+        }
+        
+        // Update uptime
+        function updateUptime() {
+            {% if stream.is_live and stream.started_at %}
+            const startTime = new Date("{{ stream.started_at.isoformat() }}");
+            const now = new Date();
+            const diff = Math.floor((now - startTime) / 1000);
+            
+            const hours = Math.floor(diff / 3600);
+            const minutes = Math.floor((diff % 3600) / 60);
+            const seconds = diff % 60;
+            
+            uptimeElement.textContent = 
+                (hours < 10 ? '0' + hours : hours) + ':' +
+                (minutes < 10 ? '0' + minutes : minutes) + ':' +
+                (seconds < 10 ? '0' + seconds : seconds);
+            {% endif %}
+        }
+        
+        // End stream functionality
+        const endStreamBtn = document.getElementById('end-stream-btn');
+        if (endStreamBtn) {
+            endStreamBtn.addEventListener('click', async function() {
+                if (confirm('Are you sure you want to end your stream?')) {
+                    try {
+                        const response = await fetch(`{{ url_for('live.end_stream', stream_key=stream.stream_key) }}`, {
+                            method: 'POST'
+                        });
+                        
+                        if (response.ok) {
+                            alert('Stream ended successfully. Refreshing page...');
+                            window.location.reload();
+                        } else {
+                            alert('There was an error ending the stream. Please try again.');
+                        }
+                    } catch (error) {
+                        console.error('Error ending stream:', error);
+                        alert('There was an error ending the stream. Please try again.');
+                    }
+                }
+            });
+        }
+        
+        // Set up polling
+        {% if stream.is_live %}
+        // Poll for chat messages every 3 seconds
+        setInterval(getMessages, 3000);
+        
+        // Update viewer count every 10 seconds
+        setInterval(updateViewerCount, 10000);
+        
+        // Update uptime every second
+        setInterval(updateUptime, 1000);
+        updateUptime(); // Initial call
+        {% endif %}
+        
+        // Initial message fetch
+        getMessages();
+    });
+</script>
+{% endblock %}

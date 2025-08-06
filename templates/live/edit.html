@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Stream - {{ stream.title }} - StreamLite{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="fas fa-edit me-2"></i>Edit Stream</h1>
+            <p class="lead text-muted">Update your stream settings</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Stream Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('live.edit_stream', stream_id=stream.id) }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Stream Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" required maxlength="128" value="{{ stream.title }}">
+                            <div class="form-text">Choose a descriptive title for your stream (max 128 characters)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ stream.description }}</textarea>
+                            <div class="form-text">Provide details about what you're streaming</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="category_id" class="form-label">Category</label>
+                            <select class="form-select" id="category_id" name="category_id">
+                                <option value="">-- Select Category --</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if stream.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="thumbnail" class="form-label">Thumbnail Image</label>
+                            
+                            {% if stream.thumbnail_path %}
+                            <div class="mb-2">
+                                <img src="{{ url_for('media.serve_media', filename=stream.thumbnail_path.split('/')[-1]) }}" alt="Current thumbnail" class="img-thumbnail" style="max-height: 100px;">
+                                <small class="text-muted d-block">Current thumbnail</small>
+                            </div>
+                            {% endif %}
+                            
+                            <input class="form-control" type="file" id="thumbnail" name="thumbnail" accept="image/*">
+                            <div class="form-text">Upload a new thumbnail (recommended size: 1280x720px, 16:9 ratio)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_public" name="is_public" {% if stream.is_public %}checked{% endif %}>
+                                <label class="form-check-label" for="is_public">Public Stream</label>
+                            </div>
+                            <div class="form-text">If enabled, your stream will be visible to everyone. Otherwise, only you can see it.</div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <h5 class="mb-3">Stream Quality Settings</h5>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="resolution" class="form-label">Resolution</label>
+                                <select class="form-select" id="resolution" name="resolution">
+                                    <option value="480p" {% if stream.stream_settings.get('resolution') == '480p' %}selected{% endif %}>480p</option>
+                                    <option value="720p" {% if stream.stream_settings.get('resolution') == '720p' or not stream.stream_settings.get('resolution') %}selected{% endif %}>720p (Recommended)</option>
+                                    <option value="1080p" {% if stream.stream_settings.get('resolution') == '1080p' %}selected{% endif %}>1080p</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="bitrate" class="form-label">Bitrate</label>
+                                <select class="form-select" id="bitrate" name="bitrate">
+                                    <option value="1500k" {% if stream.stream_settings.get('bitrate') == '1500k' %}selected{% endif %}>1500 Kbps (Low)</option>
+                                    <option value="2500k" {% if stream.stream_settings.get('bitrate') == '2500k' or not stream.stream_settings.get('bitrate') %}selected{% endif %}>2500 Kbps (Recommended)</option>
+                                    <option value="4000k" {% if stream.stream_settings.get('bitrate') == '4000k' %}selected{% endif %}>4000 Kbps (High)</option>
+                                    <option value="6000k" {% if stream.stream_settings.get('bitrate') == '6000k' %}selected{% endif %}>6000 Kbps (Ultra)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="fps" class="form-label">Frame Rate</label>
+                                <select class="form-select" id="fps" name="fps">
+                                    <option value="24" {% if stream.stream_settings.get('fps') == 24 %}selected{% endif %}>24 FPS</option>
+                                    <option value="30" {% if stream.stream_settings.get('fps') == 30 or not stream.stream_settings.get('fps') %}selected{% endif %}>30 FPS (Recommended)</option>
+                                    <option value="60" {% if stream.stream_settings.get('fps') == 60 %}selected{% endif %}>60 FPS</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="text-muted mt-2 mb-4">
+                            <small><i class="fas fa-info-circle me-1"></i>Higher quality settings require more bandwidth and CPU resources.</small>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('live.stream_control', stream_id=stream.id) }}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Stream Key</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Your stream key is used to authenticate your broadcast software with StreamLite.</p>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Keep your stream key private! Anyone with your stream key can stream to your channel.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Your Stream Key:</label>
+                        <div class="input-group mb-2">
+                            <input type="password" class="form-control" id="stream-key" value="{{ stream.stream_key }}" readonly>
+                            <button class="btn btn-outline-secondary" type="button" id="toggle-key">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" type="button" id="copy-key">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <div id="copy-tooltip" style="display: none;" class="text-success small">
+                            <i class="fas fa-check me-1"></i>Copied to clipboard!
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-warning w-100" id="reset-key-btn" disabled>
+                        <i class="fas fa-sync me-2"></i>Reset Stream Key
+                    </button>
+                    <small class="text-muted d-block text-center mt-1">
+                        <i class="fas fa-info-circle me-1"></i>Reset functionality coming soon
+                    </small>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>OBS Setup</h5>
+                </div>
+                <div class="card-body">
+                    <h6>How to Stream with OBS Studio</h6>
+                    <ol class="mb-3">
+                        <li>Open OBS Studio</li>
+                        <li>Go to Settings > Stream</li>
+                        <li>Select "Custom..." as the service</li>
+                        <li>Server URL: <code class="user-select-all">rtmp://{{ request.host }}/live</code></li>
+                        <li>Stream Key: Your stream key</li>
+                        <li>Click "Apply" then "OK"</li>
+                        <li>Start streaming in OBS</li>
+                    </ol>
+                    
+                    <p><strong>Recommended Output Settings:</strong></p>
+                    <ul>
+                        <li>Output Mode: Simple</li>
+                        <li>Video Bitrate: Match your stream settings</li>
+                        <li>Encoder: x264 (or Hardware if available)</li>
+                        <li>Audio Bitrate: 128Kbps</li>
+                        <li>Enable Advanced Encoder Settings: Checked</li>
+                        <li>Preset: veryfast</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleKeyButton = document.getElementById('toggle-key');
+        const streamKeyInput = document.getElementById('stream-key');
+        const copyKeyButton = document.getElementById('copy-key');
+        const copyTooltip = document.getElementById('copy-tooltip');
+        
+        // Toggle stream key visibility
+        if (toggleKeyButton) {
+            toggleKeyButton.addEventListener('click', function() {
+                const isPassword = streamKeyInput.type === 'password';
+                streamKeyInput.type = isPassword ? 'text' : 'password';
+                this.innerHTML = isPassword ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+            });
+        }
+        
+        // Copy stream key
+        if (copyKeyButton) {
+            copyKeyButton.addEventListener('click', function() {
+                streamKeyInput.type = 'text';
+                streamKeyInput.select();
+                document.execCommand('copy');
+                streamKeyInput.type = 'password';
+                
+                // Show tooltip
+                copyTooltip.style.display = 'block';
+                setTimeout(() => {
+                    copyTooltip.style.display = 'none';
+                }, 2000);
+            });
+        }
+    });
+</script>
+{% endblock %}

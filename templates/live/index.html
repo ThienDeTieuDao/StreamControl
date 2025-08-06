@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Streams - StreamLite{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-broadcast-tower me-2"></i>Live Streams</h1>
+            <p class="lead text-muted">Watch live content from our community</p>
+        </div>
+        <div class="col-md-4 text-end align-self-center">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('live.setup_stream') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i>Go Live
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-2"></i>Login to Stream
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if featured_stream %}
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-star me-2"></i>Featured Stream</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="row g-0">
+                <div class="col-lg-8">
+                    <div class="ratio ratio-16x9">
+                        {% if featured_stream.thumbnail_path %}
+                        <img src="{{ url_for('media.serve_media', filename=featured_stream.thumbnail_path.split('/')[-1]) }}" alt="{{ featured_stream.title }}" class="img-fluid">
+                        {% else %}
+                        <div class="bg-dark d-flex align-items-center justify-content-center">
+                            <i class="fas fa-video fa-3x text-secondary"></i>
+                        </div>
+                        {% endif %}
+                        <div class="position-absolute top-0 end-0 p-2">
+                            <span class="badge bg-danger"><i class="fas fa-circle me-1"></i>LIVE</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="p-3 h-100 d-flex flex-column">
+                        <h4 class="card-title">
+                            <a href="{{ url_for('live.view_stream', stream_id=featured_stream.id) }}" class="text-decoration-none">
+                                {{ featured_stream.title }}
+                            </a>
+                        </h4>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-user me-1"></i> {{ featured_stream.streamer.username }}
+                        </p>
+                        {% if featured_stream.category %}
+                        <p class="mb-2">
+                            <span class="badge bg-info">{{ featured_stream.category.name }}</span>
+                        </p>
+                        {% endif %}
+                        <div class="mb-3">
+                            <i class="fas fa-eye me-1"></i> {{ featured_stream.viewer_count }} viewers
+                            {% if featured_stream.started_at %}
+                            <span class="ms-2">
+                                <i class="fas fa-clock me-1"></i> Started {{ featured_stream.started_at.strftime('%H:%M') }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="card-text flex-grow-1">
+                            {{ featured_stream.description|truncate(120) }}
+                        </p>
+                        
+                        <a href="{{ url_for('live.view_stream', stream_id=featured_stream.id) }}" class="btn btn-danger w-100">
+                            <i class="fas fa-play me-2"></i>Watch Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if live_streams %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-broadcast-tower me-2"></i>Live Now</h5>
+                    <div class="badge bg-danger">{{ live_streams|length }} Active</div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for stream in live_streams %}
+                        <div class="col-md-6 col-lg-4 col-xl-3 mb-4">
+                            <div class="card h-100 stream-card">
+                                <div class="position-relative">
+                                    <div class="ratio ratio-16x9">
+                                        {% if stream.thumbnail_path %}
+                                        <img src="{{ url_for('media.serve_media', filename=stream.thumbnail_path.split('/')[-1]) }}" alt="{{ stream.title }}" class="card-img-top">
+                                        {% else %}
+                                        <div class="bg-dark d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-video fa-3x text-secondary"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="position-absolute top-0 end-0 p-2">
+                                        <span class="badge bg-danger"><i class="fas fa-circle me-1"></i>LIVE</span>
+                                    </div>
+                                    <div class="position-absolute bottom-0 start-0 p-2">
+                                        <span class="badge bg-dark"><i class="fas fa-eye me-1"></i>{{ stream.viewer_count }}</span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a href="{{ url_for('live.view_stream', stream_id=stream.id) }}" class="text-decoration-none">
+                                            {{ stream.title|truncate(50) }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text text-muted">{{ stream.streamer.username }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        {% if stream.category %}
+                                        <span class="badge bg-info">{{ stream.category.name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">Uncategorized</span>
+                                        {% endif %}
+                                        
+                                        {% if stream.started_at %}
+                                        <small class="text-muted">
+                                            {% set duration = (now - stream.started_at).total_seconds() %}
+                                            {{ '%d:%02d:%02d'|format(duration // 3600, (duration % 3600) // 60, duration % 60) }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent border-top-0">
+                                    <a href="{{ url_for('live.view_stream', stream_id=stream.id) }}" class="btn btn-primary btn-sm w-100">
+                                        <i class="fas fa-play me-2"></i>Watch Stream
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if categories %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-th-large me-2"></i>Browse by Category</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for category in categories %}
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="card bg-dark text-center category-card h-100">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        {% if category.icon %}
+                                        <i class="fas fa-{{ category.icon }} fa-2x"></i>
+                                        {% else %}
+                                        <i class="fas fa-folder fa-2x"></i>
+                                        {% endif %}
+                                    </div>
+                                    <h5 class="card-title">{{ category.name }}</h5>
+                                    <p class="card-text text-muted">
+                                        {{ category.live_streams|selectattr('is_live', 'eq', true)|list|length }} live
+                                    </p>
+                                    <a href="{{ url_for('media.category', category_id=category.id) }}" class="stretched-link"></a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-video-slash fa-4x text-muted mb-3"></i>
+            <h3>No Live Streams Right Now</h3>
+            <p class="lead">Nobody is streaming at the moment.</p>
+            <p class="text-muted mb-4">Be the first to go live and start streaming!</p>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('live.setup_stream') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus-circle me-2"></i>Create Stream
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Login to Stream
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if categories %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-th-large me-2"></i>Browse by Category</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for category in categories %}
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="card bg-dark text-center category-card h-100">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        {% if category.icon %}
+                                        <i class="fas fa-{{ category.icon }} fa-2x"></i>
+                                        {% else %}
+                                        <i class="fas fa-folder fa-2x"></i>
+                                        {% endif %}
+                                    </div>
+                                    <h5 class="card-title">{{ category.name }}</h5>
+                                    <p class="card-text text-muted">
+                                        {{ category.media_items|length }} videos
+                                    </p>
+                                    <a href="{{ url_for('media.category', category_id=category.id) }}" class="stretched-link"></a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if recommended_media %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-play me-2"></i>Watch On-Demand</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for media in recommended_media %}
+                <div class="col-md-6 col-lg-4 col-xl-3 mb-4">
+                    <div class="card h-100 media-card">
+                        <div class="position-relative">
+                            <div class="ratio ratio-16x9">
+                                {% if media.thumbnail_path %}
+                                <img src="{{ url_for('media.serve_media', filename=media.thumbnail_path.split('/')[-1]) }}" alt="{{ media.title }}" class="card-img-top">
+                                {% else %}
+                                <div class="bg-dark d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-film fa-3x text-secondary"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="position-absolute bottom-0 end-0 p-2">
+                                <span class="badge bg-dark">{{ media.duration|format_duration }}</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{{ url_for('media.watch', media_id=media.id) }}" class="text-decoration-none">
+                                    {{ media.title|truncate(50) }}
+                                </a>
+                            </h5>
+                            <p class="card-text text-muted">{{ media.uploader.username }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                {% if media.category %}
+                                <span class="badge bg-info">{{ media.category.name }}</span>
+                                {% else %}
+                                <span class="text-muted">Uncategorized</span>
+                                {% endif %}
+                                <small class="text-muted">
+                                    <i class="fas fa-eye me-1"></i>{{ media.views }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="{{ url_for('media.watch', media_id=media.id) }}" class="btn btn-secondary btn-sm w-100">
+                                <i class="fas fa-play me-2"></i>Watch Video
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stream-card:hover,
+    .media-card:hover,
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+    }
+    
+    .stream-card,
+    .media-card,
+    .category-card {
+        transition: all 0.3s ease;
+    }
+    
+    .category-card .stretched-link::after {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        content: "";
+    }
+</style>
+{% endblock %}

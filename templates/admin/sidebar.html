@@ -1,0 +1,84 @@
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-cog me-2"></i>Admin Controls
+    </div>
+    <div class="list-group list-group-flush">
+        <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        </a>
+        <a href="{{ url_for('admin.manage_users') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.manage_users' %}active{% endif %}">
+            <i class="fas fa-users me-2"></i>Manage Users
+        </a>
+        <a href="{{ url_for('admin.manage_media') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.manage_media' %}active{% endif %}">
+            <i class="fas fa-photo-video me-2"></i>Manage Media
+        </a>
+        <a href="{{ url_for('admin.manage_categories') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.manage_categories' %}active{% endif %}">
+            <i class="fas fa-tags me-2"></i>Manage Categories
+        </a>
+        <a href="{{ url_for('settings.site_settings') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'settings.site_settings' %}active{% endif %}">
+            <i class="fas fa-palette me-2"></i>Site Settings
+        </a>
+        <a href="{{ url_for('settings.support_chats') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'settings.support_chats' %}active{% endif %}">
+            <i class="fas fa-headset me-2"></i>Support Chats
+            <span class="badge bg-danger rounded-pill" id="unread-support-count"></span>
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-chart-line me-2"></i>Stats
+    </div>
+    <div class="card-body">
+        <div class="small">
+            <div class="d-flex justify-content-between mb-2">
+                <div>Disk Usage:</div>
+                <div id="disk-usage">Loading...</div>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <div>Live Streams:</div>
+                <div id="live-streams-count">Loading...</div>
+            </div>
+            <div class="d-flex justify-content-between">
+                <div>Active Users:</div>
+                <div id="active-users-count">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Load the unread support message count
+    document.addEventListener('DOMContentLoaded', function() {
+        const unreadSupportCount = document.getElementById('unread-support-count');
+        
+        function updateSupportCount() {
+            fetch('/settings/support/unread/count')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.unread_count > 0) {
+                        unreadSupportCount.textContent = data.unread_count;
+                        unreadSupportCount.style.display = 'inline';
+                    } else {
+                        unreadSupportCount.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error fetching support count:', error));
+        }
+        
+        // Update immediately and then every 60 seconds
+        updateSupportCount();
+        setInterval(updateSupportCount, 60000);
+        
+        // Load system stats
+        function updateSystemStats() {
+            // This would be an AJAX call to get stats
+            // For now, we'll just populate with placeholders
+            document.getElementById('disk-usage').textContent = '64%';
+            document.getElementById('live-streams-count').textContent = '3';
+            document.getElementById('active-users-count').textContent = '27';
+        }
+        
+        updateSystemStats();
+    });
+</script>

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ current_user.username }}'s Profile - StreamLite{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-user-circle me-2"></i>User Profile</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-3 text-center">
+                        <div class="bg-secondary rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 100px; height: 100px;">
+                            <i class="fas fa-user fa-3x text-light"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <h3>{{ current_user.username }}</h3>
+                        <p class="text-muted">
+                            <i class="fas fa-envelope me-2"></i>{{ current_user.email }}
+                        </p>
+                        <p>
+                            <i class="fas fa-calendar-alt me-2"></i>Member since: {{ current_user.created_at.strftime('%B %d, %Y') }}
+                        </p>
+                        {% if current_user.is_admin %}
+                        <span class="badge bg-danger">Administrator</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Media Stats -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Media Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <h3>{{ current_user.media_items|length }}</h3>
+                            <p class="text-muted">Uploads</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <h3>{{ current_user.media_items|selectattr('media_type', 'equalto', 'video')|list|length }}</h3>
+                            <p class="text-muted">Videos</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <h3>{{ current_user.media_items|selectattr('media_type', 'equalto', 'audio')|list|length }}</h3>
+                            <p class="text-muted">Audio</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('media.dashboard') }}" class="btn btn-outline-info">
+                        <i class="fas fa-photo-video me-2"></i>View My Media
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

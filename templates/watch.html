@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}{{ media.title }} - StreamLite{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Video/Audio Player -->
+        <div class="card mb-4">
+            <div class="card-body p-0">
+                {% if media.media_type == 'video' %}
+                <div class="ratio ratio-16x9">
+                    <video id="my-video" class="video-js vjs-big-play-centered vjs-theme-city" controls preload="auto" data-setup='{}'>
+                        <source src="{{ url_for('media.serve_media', filename=media.filename) }}" type="video/mp4">
+                        <p class="vjs-no-js">
+                            To view this video please enable JavaScript, and consider upgrading to a web browser that
+                            <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+                        </p>
+                    </video>
+                </div>
+                {% else %}
+                <div class="audio-player p-4 bg-dark text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-music fa-5x text-light"></i>
+                    </div>
+                    <audio id="my-audio" class="video-js vjs-theme-city" controls preload="auto" data-setup='{}'>
+                        <source src="{{ url_for('media.serve_media', filename=media.filename) }}" type="audio/mp3">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Media Info -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h1 class="h3 mb-2">{{ media.title }}</h1>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>
+                        <span class="badge bg-secondary me-2">
+                            <i class="fas fa-eye"></i> {{ media.views }} views
+                        </span>
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-calendar"></i> {{ media.created_at.strftime('%b %d, %Y') }}
+                        </span>
+                    </div>
+                    {% if current_user.is_authenticated and (media.user_id == current_user.id or current_user.is_admin) %}
+                    <div>
+                        <a href="{{ url_for('media.edit_media', media_id=media.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <h5>Description</h5>
+                        <p>{{ media.description or 'No description available' }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Details</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>Uploader</span>
+                                <span>{{ media.uploader.username }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>Category</span>
+                                <span>
+                                    {% if media.category %}
+                                    <a href="{{ url_for('media.category', category_id=media.category.id) }}">
+                                        {{ media.category.name }}
+                                    </a>
+                                    {% else %}
+                                    Uncategorized
+                                    {% endif %}
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>Duration</span>
+                                <span>{{ formatted_duration }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>File Size</span>
+                                <span>{{ formatted_size }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>Format</span>
+                                <span>{{ media.format }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Related Media (placeholder) -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">More From This Category</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% if media.category %}
+                    {% for related in media.category.media_items[:5] if related.id != media.id and related.is_public %}
+                    <a href="{{ url_for('media.watch', media_id=related.id) }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <div class="flex-shrink-0" style="width: 100px; height: 56px; overflow: hidden; position: relative;">
+                            {% if related.thumbnail_path %}
+                            <img src="{{ url_for('media.serve_media', filename=related.thumbnail_path.split('/')[-1]) }}" 
+                                 class="img-fluid" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 100%; min-height: 100%;">
+                            {% elif related.media_type == 'video' %}
+                            <div class="bg-dark d-flex align-items-center justify-content-center" style="width: 100px; height: 56px;">
+                                <i class="fas fa-film text-white"></i>
+                            </div>
+                            {% else %}
+                            <div class="bg-dark d-flex align-items-center justify-content-center" style="width: 100px; height: 56px;">
+                                <i class="fas fa-music text-white"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-1">{{ related.title }}</h6>
+                            <small>{{ related.uploader.username }} • {{ related.views }} views</small>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="list-group-item text-center py-4">
+                        <i class="fas fa-info-circle mb-2"></i>
+                        <p class="mb-0">No related media found</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="list-group-item text-center py-4">
+                    <i class="fas fa-info-circle mb-2"></i>
+                    <p class="mb-0">This media is not categorized</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+{% if current_user.is_authenticated and (media.user_id == current_user.id or current_user.is_admin) %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete "<strong>{{ media.title }}</strong>"?</p>
+                <p class="text-danger">This action cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('media.delete_media', media_id=media.id) }}" method="post">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/player.js') }}"></script>
+{% endblock %}

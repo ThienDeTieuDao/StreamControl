@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} - StreamLite{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>{{ category.name }}</h1>
+        {% if category.description %}
+        <p class="text-muted">{{ category.description }}</p>
+        {% endif %}
+    </div>
+    
+    <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="categoryDropdown" data-bs-toggle="dropdown">
+            <i class="fas fa-filter"></i> Change Category
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="categoryDropdown">
+            <li><a class="dropdown-item" href="{{ url_for('media.index') }}">All Media</a></li>
+            <li><hr class="dropdown-divider"></li>
+            {% for cat in categories %}
+            <li><a class="dropdown-item {% if cat.id == category.id %}active{% endif %}" href="{{ url_for('media.category', category_id=cat.id) }}">{{ cat.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+    {% for item in media_items.items %}
+    <div class="col">
+        <div class="card h-100 shadow-sm hover-scale">
+            <a href="{{ url_for('media.watch', media_id=item.id) }}" class="text-decoration-none">
+                <div class="position-relative media-thumbnail">
+                    {% if item.thumbnail_path %}
+                    <img src="{{ url_for('media.serve_media', filename=item.thumbnail_path.split('/')[-1]) }}" class="card-img-top" alt="{{ item.title }}">
+                    {% elif item.media_type == 'video' %}
+                    <div class="bg-dark d-flex align-items-center justify-content-center card-img-top ratio ratio-16x9">
+                        <i class="fas fa-film fa-3x text-white"></i>
+                    </div>
+                    {% else %}
+                    <div class="bg-dark d-flex align-items-center justify-content-center card-img-top ratio ratio-16x9">
+                        <i class="fas fa-music fa-3x text-white"></i>
+                    </div>
+                    {% endif %}
+                    <div class="position-absolute bottom-0 end-0 p-2">
+                        {% if item.media_type == 'video' %}
+                        <span class="badge bg-primary">
+                            <i class="fas fa-film"></i> Video
+                        </span>
+                        {% else %}
+                        <span class="badge bg-info">
+                            <i class="fas fa-music"></i> Audio
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{{ url_for('media.watch', media_id=item.id) }}" class="text-decoration-none text-dark">
+                        {{ item.title }}
+                    </a>
+                </h5>
+                <p class="card-text text-muted">
+                    {{ item.description|truncate(100) if item.description else '' }}
+                </p>
+            </div>
+            <div class="card-footer d-flex justify-content-between text-muted">
+                <small>
+                    <i class="fas fa-user"></i> {{ item.uploader.username }}
+                </small>
+                <small>
+                    <i class="fas fa-eye"></i> {{ item.views }}
+                </small>
+                <small>
+                    <i class="fas fa-calendar"></i> {{ item.created_at.strftime('%b %d, %Y') }}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle fa-2x mb-3"></i>
+            <h4>No media found</h4>
+            <p>There are currently no media items available in this category.</p>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('media.upload') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-upload me-2"></i> Upload Media
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if media_items.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if media_items.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('media.category', category_id=category.id, page=media_items.prev_num) }}">Previous</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Previous</span>
+        </li>
+        {% endif %}
+        
+        {% for page_num in media_items.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if media_items.page == page_num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                </li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('media.category', category_id=category.id, page=page_num) }}">{{ page_num }}</a>
+                </li>
+                {% endif %}
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if media_items.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('media.category', category_id=category.id, page=media_items.next_num) }}">Next</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Next</span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

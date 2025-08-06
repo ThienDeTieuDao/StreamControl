@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamLite WebRTC</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .card {
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-img-top {
+            height: 180px;
+            object-fit: cover;
+        }
+        .jumbotron {
+            background-color: var(--bs-dark);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body data-bs-theme="dark">
+    <div class="container">
+        <div class="jumbotron">
+            <h1 class="display-4">StreamLite WebRTC</h1>
+            <p class="lead">Ultra-low latency streaming with WebRTC technology</p>
+            <hr class="my-4">
+            <p>Choose an option below to start streaming or viewing streams.</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Start Broadcasting</h5>
+                        <p class="card-text">Share your camera and microphone with viewers through ultra-low latency WebRTC streaming.</p>
+                        <a href="/webrtc/broadcast" class="btn btn-primary">Start Broadcasting</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">View Streams</h5>
+                        <p class="card-text">Enter a stream key to view an existing WebRTC broadcast.</p>
+                        <form id="viewForm" class="d-flex">
+                            <input type="text" id="streamKeyInput" class="form-control me-2" placeholder="Enter stream key">
+                            <button type="submit" class="btn btn-success">View</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        WebRTC vs RTMP/HLS Comparison
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Feature</th>
+                                        <th>WebRTC</th>
+                                        <th>RTMP/HLS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Latency</td>
+                                        <td>Ultra-low (0.5-1s)</td>
+                                        <td>Higher (3-30s)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Browser Support</td>
+                                        <td>Built into modern browsers</td>
+                                        <td>Requires player (HLS.js)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Scalability</td>
+                                        <td>Limited without SFU/MCU</td>
+                                        <td>Highly scalable with CDNs</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Use Case</td>
+                                        <td>Interactive, real-time communication</td>
+                                        <td>One-way broadcasts to large audiences</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('viewForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const streamKey = document.getElementById('streamKeyInput').value.trim();
+            if (streamKey) {
+                window.location.href = `/webrtc/view/${streamKey}`;
+            }
+        });
+    </script>
+</body>
+</html>

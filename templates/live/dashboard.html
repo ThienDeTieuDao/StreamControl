@@ -1,0 +1,399 @@
+{% extends 'base.html' %}
+
+{% block title %}My Streams - StreamLite{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-broadcast-tower me-2"></i>My Streams</h1>
+            <p class="lead text-muted">Manage your live streaming channels</p>
+        </div>
+        <div class="col-md-4 text-end align-self-center">
+            <a href="{{ url_for('live.setup_stream') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i>Create New Stream
+            </a>
+        </div>
+    </div>
+
+    {% if streams %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6 class="mb-2"><i class="fas fa-list me-2"></i>TOTAL STREAMS</h6>
+                    <div class="display-4 mb-2">{{ streams|length }}</div>
+                    <small>Created streams</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h6 class="mb-2"><i class="fas fa-video me-2"></i>LIVE NOW</h6>
+                    <div class="display-4 mb-2">{{ streams|selectattr('is_live', 'eq', true)|list|length }}</div>
+                    <small>Active streams</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h6 class="mb-2"><i class="fas fa-eye me-2"></i>TOTAL VIEWERS</h6>
+                    <div class="display-4 mb-2">{{ streams|map(attribute='viewer_count')|sum }}</div>
+                    <small>Current viewers</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h6 class="mb-2"><i class="fas fa-clock me-2"></i>STREAM TIME</h6>
+                    <div class="display-4 mb-2">
+                        {% set total_hours = 0 %}
+                        {% for stream in streams %}
+                            {% if stream.started_at and stream.ended_at %}
+                                {% set total_hours = total_hours + ((stream.ended_at - stream.started_at).total_seconds() / 3600) %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ '%d'|format(total_hours|int) }}h
+                    </div>
+                    <small>Total hours streamed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="streamTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">
+                        All Streams
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="live-tab" data-bs-toggle="tab" data-bs-target="#live" type="button" role="tab" aria-controls="live" aria-selected="false">
+                        Live Now <span class="badge bg-danger">{{ streams|selectattr('is_live', 'eq', true)|list|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button" role="tab" aria-controls="past" aria-selected="false">
+                        Past Streams
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="streamTabsContent">
+                <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th style="width: 120px;">Thumbnail</th>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Category</th>
+                                    <th>Created</th>
+                                    <th>Viewers</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stream in streams %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>
+                                        {% if stream.thumbnail_path %}
+                                        <img src="{{ url_for('media.serve_media', filename=stream.thumbnail_path.split('/')[-1]) }}" alt="{{ stream.title }}" class="img-fluid rounded" style="max-height: 60px;">
+                                        {% else %}
+                                        <div class="bg-dark rounded d-flex align-items-center justify-content-center" style="width: 106px; height: 60px;">
+                                            <i class="fas fa-video text-secondary"></i>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('live.view_stream', stream_id=stream.id) }}" class="text-decoration-none">
+                                            {{ stream.title }}
+                                        </a>
+                                        {% if not stream.is_public %}
+                                        <span class="badge bg-secondary ms-1"><i class="fas fa-lock me-1"></i>Private</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stream.is_live %}
+                                        <span class="badge bg-danger"><i class="fas fa-circle me-1"></i>LIVE</span>
+                                        {% elif stream.ended_at %}
+                                        <span class="badge bg-secondary">ENDED</span>
+                                        {% else %}
+                                        <span class="badge bg-warning text-dark">NOT STARTED</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stream.category %}
+                                        <span class="badge bg-info">{{ stream.category.name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">Uncategorized</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ stream.created_at.strftime('%b %d, %Y') }}</td>
+                                    <td>{{ stream.viewer_count }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('live.stream_control', stream_id=stream.id) }}" class="btn btn-sm btn-outline-primary" title="Control Panel">
+                                                <i class="fas fa-sliders-h"></i>
+                                            </a>
+                                            <a href="{{ url_for('live.view_stream', stream_id=stream.id) }}" class="btn btn-sm btn-outline-info" title="View Stream">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('live.stream_analytics', stream_id=stream.id) }}" class="btn btn-sm btn-outline-success" title="Analytics">
+                                                <i class="fas fa-chart-line"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="live" role="tabpanel" aria-labelledby="live-tab">
+                    {% set live_streams = streams|selectattr('is_live', 'eq', true)|list %}
+                    {% if live_streams %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th style="width: 120px;">Thumbnail</th>
+                                    <th>Title</th>
+                                    <th>Started</th>
+                                    <th>Category</th>
+                                    <th>Viewers</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stream in live_streams %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>
+                                        {% if stream.thumbnail_path %}
+                                        <img src="{{ url_for('media.serve_media', filename=stream.thumbnail_path.split('/')[-1]) }}" alt="{{ stream.title }}" class="img-fluid rounded" style="max-height: 60px;">
+                                        {% else %}
+                                        <div class="bg-dark rounded d-flex align-items-center justify-content-center" style="width: 106px; height: 60px;">
+                                            <i class="fas fa-video text-secondary"></i>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('live.view_stream', stream_id=stream.id) }}" class="text-decoration-none">
+                                            {{ stream.title }}
+                                        </a>
+                                        {% if not stream.is_public %}
+                                        <span class="badge bg-secondary ms-1"><i class="fas fa-lock me-1"></i>Private</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stream.started_at %}
+                                        {{ stream.started_at.strftime('%H:%M') }}
+                                        <small class="text-muted d-block">
+                                            {% set duration = (now - stream.started_at).total_seconds() %}
+                                            {{ '%d:%02d:%02d'|format(duration // 3600, (duration % 3600) // 60, duration % 60) }}
+                                        </small>
+                                        {% else %}
+                                        --:--
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stream.category %}
+                                        <span class="badge bg-info">{{ stream.category.name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">Uncategorized</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ stream.viewer_count }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('live.stream_control', stream_id=stream.id) }}" class="btn btn-sm btn-primary" title="Control Panel">
+                                                <i class="fas fa-sliders-h"></i>
+                                            </a>
+                                            <a href="{{ url_for('live.view_stream', stream_id=stream.id) }}" class="btn btn-sm btn-info" title="View Stream">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-video-slash fa-4x text-muted mb-3"></i>
+                        <h4>No Active Streams</h4>
+                        <p class="text-muted">You don't have any active streams at the moment.</p>
+                        <a href="{{ url_for('live.setup_stream') }}" class="btn btn-primary mt-3">
+                            <i class="fas fa-plus-circle me-2"></i>Create New Stream
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="past-tab">
+                    {% set past_streams = streams|selectattr('ended_at', 'defined')|list %}
+                    {% if past_streams %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th style="width: 120px;">Thumbnail</th>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                    <th>Duration</th>
+                                    <th>Category</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stream in past_streams %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>
+                                        {% if stream.thumbnail_path %}
+                                        <img src="{{ url_for('media.serve_media', filename=stream.thumbnail_path.split('/')[-1]) }}" alt="{{ stream.title }}" class="img-fluid rounded" style="max-height: 60px;">
+                                        {% else %}
+                                        <div class="bg-dark rounded d-flex align-items-center justify-content-center" style="width: 106px; height: 60px;">
+                                            <i class="fas fa-video text-secondary"></i>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('live.view_stream', stream_id=stream.id) }}" class="text-decoration-none">
+                                            {{ stream.title }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if stream.ended_at %}
+                                        {{ stream.ended_at.strftime('%b %d, %Y') }}
+                                        {% else %}
+                                        --
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stream.started_at and stream.ended_at %}
+                                        {% set duration = (stream.ended_at - stream.started_at).total_seconds() %}
+                                        {{ '%d:%02d:%02d'|format(duration // 3600, (duration % 3600) // 60, duration % 60) }}
+                                        {% else %}
+                                        --:--:--
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stream.category %}
+                                        <span class="badge bg-info">{{ stream.category.name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">Uncategorized</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('live.stream_analytics', stream_id=stream.id) }}" class="btn btn-sm btn-success" title="Analytics">
+                                                <i class="fas fa-chart-line"></i>
+                                            </a>
+                                            <a href="{{ url_for('live.stream_control', stream_id=stream.id) }}" class="btn btn-sm btn-outline-secondary" title="Control Panel">
+                                                <i class="fas fa-sliders-h"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-history fa-4x text-muted mb-3"></i>
+                        <h4>No Past Streams</h4>
+                        <p class="text-muted">You haven't completed any streams yet.</p>
+                        <a href="{{ url_for('live.setup_stream') }}" class="btn btn-primary mt-3">
+                            <i class="fas fa-plus-circle me-2"></i>Create New Stream
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-broadcast-tower fa-4x text-muted mb-3"></i>
+            <h3>No Streams Yet</h3>
+            <p class="lead">You haven't created any live streams.</p>
+            <p class="text-muted mb-4">Create your first stream to get started with live streaming!</p>
+            <a href="{{ url_for('live.setup_stream') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus-circle me-2"></i>Create Your First Stream
+            </a>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Getting Started</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Creating a live stream is easy!</p>
+                    <ol>
+                        <li>Click the "Create Your First Stream" button</li>
+                        <li>Fill in your stream details and settings</li>
+                        <li>Get your stream key and configure your software</li>
+                        <li>Start streaming from your broadcasting software</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Stream Ideas</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Not sure what to stream? Here are some ideas:</p>
+                    <ul>
+                        <li>Gaming sessions</li>
+                        <li>Coding and development</li>
+                        <li>Live podcasts or discussions</li>
+                        <li>Tutorials and educational content</li>
+                        <li>Q&A sessions</li>
+                        <li>Art and creative works</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>Streaming Help</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Need help getting started?</p>
+                    <ul>
+                        <li>Make sure you have streaming software installed (OBS, StreamLabs, etc.)</li>
+                        <li>Use RTMP protocol with your stream key</li>
+                        <li>Set your resolution to 720p (1280x720) for best results</li>
+                        <li>Use a bitrate between 2500-4000 Kbps</li>
+                        <li>For help configuring OBS, <a href="#" class="text-decoration-none">check our guide</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

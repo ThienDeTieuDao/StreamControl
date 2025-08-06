@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+
+{% block title %}OBS Studio Setup Guide{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row">
+        <div class="col-lg-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('help.index') }}">Help Center</a></li>
+                    <li class="breadcrumb-item active">OBS Studio Setup Guide</li>
+                </ol>
+            </nav>
+            <h1 class="mb-4"><i class="fas fa-video me-2"></i>OBS Studio Setup Guide</h1>
+            
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i> This guide will help you set up OBS Studio for streaming to our platform.
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Left side: Step-by-step guide -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Step-by-Step Configuration</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Step 1: Installation -->
+                    <div class="step-item mb-4">
+                        <h4><span class="badge bg-primary me-2">1</span>Download and Install OBS Studio</h4>
+                        <p>First, download and install OBS Studio from the official website:</p>
+                        <a href="https://obsproject.com/download" target="_blank" class="btn btn-outline-primary mb-3">
+                            <i class="fas fa-download me-2"></i>Download OBS Studio
+                        </a>
+                        <p>Follow the installation instructions for your operating system.</p>
+                    </div>
+                    
+                    <!-- Step 2: Basic Setup -->
+                    <div class="step-item mb-4">
+                        <h4><span class="badge bg-primary me-2">2</span>Run the Auto-Configuration Wizard</h4>
+                        <p>When you first launch OBS, you'll be prompted to run the auto-configuration wizard. If not:</p>
+                        <ol>
+                            <li>Go to <strong>Tools</strong> in the top menu</li>
+                            <li>Select <strong>Auto-Configuration Wizard</strong></li>
+                            <li>Choose <strong>Optimize for streaming</strong></li>
+                            <li>Select <strong>Custom Service</strong> when asked</li>
+                            <li>Use the server settings from the next step</li>
+                        </ol>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> The wizard will test your system and recommend optimal settings based on your hardware and internet connection.
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Stream Settings -->
+                    <div class="step-item mb-4">
+                        <h4><span class="badge bg-primary me-2">3</span>Configure Stream Settings</h4>
+                        <p>To connect OBS to our streaming platform:</p>
+                        <ol>
+                            <li>Click <strong>Settings</strong> in the bottom-right corner</li>
+                            <li>Select the <strong>Stream</strong> category</li>
+                            <li>For <strong>Service</strong>, select <strong>Custom...</strong></li>
+                            <li>For <strong>Server</strong>, enter: <code class="bg-dark text-light p-1">rtmp://hwosecurity.org/live</code></li>
+                            <li>For <strong>Stream Key</strong>, enter your unique stream key (found in your dashboard)</li>
+                            <li>Click <strong>OK</strong> to save settings</li>
+                        </ol>
+                        <div class="alert alert-danger">
+                            <i class="fas fa-lock me-2"></i> <strong>Important:</strong> Keep your stream key private! Anyone with your stream key can stream to your channel.
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0">Alternative Streaming Protocols</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>We support multiple streaming protocols for different scenarios:</p>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Protocol</th>
+                                            <th>Server URL</th>
+                                            <th>Best For</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>RTMP</strong></td>
+                                            <td><code>rtmp://hwosecurity.org/live</code></td>
+                                            <td>Standard streaming, good compatibility</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>RTMPS</strong> (Secure)</td>
+                                            <td><code>rtmps://hwosecurity.org/live</code></td>
+                                            <td>Encrypted streaming, more secure</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>WebRTC</strong></td>
+                                            <td><em>Use our WebRTC interface</em></td>
+                                            <td>Ultra-low latency streaming</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4: Output Settings -->
+                    <div class="step-item mb-4">
+                        <h4><span class="badge bg-primary me-2">4</span>Configure Output Settings</h4>
+                        <p>For optimal streaming quality:</p>
+                        <ol>
+                            <li>In Settings, select the <strong>Output</strong> category</li>
+                            <li>For simplicity, choose <strong>Simple</strong> output mode</li>
+                            <li>Set <strong>Video Bitrate</strong> to <code>2500-4000 Kbps</code> (depending on your internet upload speed)</li>
+                            <li>Set <strong>Audio Bitrate</strong> to <code>128-160</code> Kbps</li>
+                            <li>Enable <strong>Enable Advanced Encoder Settings</strong></li>
+                            <li>Set <strong>Keyframe Interval</strong> to <code>2</code> seconds</li>
+                            <li>For <strong>CPU Usage Preset</strong>, choose <code>veryfast</code> for the best balance between quality and CPU usage</li>
+                        </ol>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0">Recommended Bitrate Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Resolution</th>
+                                            <th>Frame Rate</th>
+                                            <th>Recommended Bitrate</th>
+                                            <th>Required Upload Speed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>720p (1280x720)</td>
+                                            <td>30 fps</td>
+                                            <td>2500-4000 Kbps</td>
+                                            <td>5 Mbps+</td>
+                                        </tr>
+                                        <tr>
+                                            <td>720p (1280x720)</td>
+                                            <td>60 fps</td>
+                                            <td>3500-5000 Kbps</td>
+                                            <td>7 Mbps+</td>
+                                        </tr>
+                                        <tr>
+                                            <td>1080p (1920x1080)</td>
+                                            <td>30 fps</td>
+                                            <td>4500-6000 Kbps</td>
+                                            <td>9 Mbps+</td>
+                                        </tr>
+                                        <tr>
+                                            <td>1080p (1920x1080)</td>
+                                            <td>60 fps</td>
+                                            <td>6000-8000 Kbps</td>
+                                            <td>12 Mbps+</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 5: Video Settings -->
+                    <div class="step-item mb-4">
+                        <h4><span class="badge bg-primary me-2">5</span>Configure Video Settings</h4>
+                        <ol>
+                            <li>In Settings, select the <strong>Video</strong> category</li>
+                            <li>Set <strong>Base (Canvas) Resolution</strong> to your display resolution (e.g., 1920x1080)</li>
+                            <li>Set <strong>Output (Scaled) Resolution</strong> to your desired streaming resolution (e.g., 1280x720)</li>
+                            <li>Set <strong>Downscale Filter</strong> to <code>Lanczos</code> for best quality</li>
+                            <li>Set <strong>Common FPS Values</strong> to <code>30</code> or <code>60</code></li>
+                        </ol>
+                    </div>
+                    
+                    <!-- Step 6: Audio Settings -->
+                    <div class="step-item mb-4">
+                        <h4><span class="badge bg-primary me-2">6</span>Configure Audio Settings</h4>
+                        <ol>
+                            <li>In Settings, select the <strong>Audio</strong> category</li>
+                            <li>Set <strong>Sample Rate</strong> to <code>48 kHz</code></li>
+                            <li>Set <strong>Channels</strong> to <code>Stereo</code></li>
+                            <li>For <strong>Desktop Audio</strong>, select your system audio device</li>
+                            <li>For <strong>Mic/Auxiliary Audio</strong>, select your microphone</li>
+                        </ol>
+                    </div>
+                    
+                    <!-- Step 7: Adding Sources -->
+                    <div class="step-item mb-4">
+                        <h4><span class="badge bg-primary me-2">7</span>Add Sources to Your Scene</h4>
+                        <p>Set up your streaming scene with sources:</p>
+                        <ol>
+                            <li>In the <strong>Sources</strong> box, click the + (plus) icon</li>
+                            <li>Add a <strong>Display Capture</strong> or <strong>Game Capture</strong> source for your video</li>
+                            <li>Add an <strong>Audio Input Capture</strong> source for your microphone (if not already set up)</li>
+                            <li>Add additional sources as needed (webcam, images, text, etc.)</li>
+                        </ol>
+                    </div>
+                    
+                    <!-- Step 8: Start Streaming -->
+                    <div class="step-item">
+                        <h4><span class="badge bg-primary me-2">8</span>Start Streaming</h4>
+                        <ol>
+                            <li>Click <strong>Start Streaming</strong> button in the controls section</li>
+                            <li>Your stream should now be live on our platform</li>
+                            <li>To end your stream, click <strong>Stop Streaming</strong></li>
+                        </ol>
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i> Congratulations! You are now set up and ready to stream with OBS Studio.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right side: Tips and troubleshooting -->
+        <div class="col-lg-4">
+            <!-- Stream Health Checklist -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-check-double me-2"></i>Stream Health Checklist</h4>
+                </div>
+                <div class="card-body">
+                    <p>Before going live, verify these important settings:</p>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="check1">
+                        <label class="form-check-label" for="check1">Stream key is correctly entered</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="check2">
+                        <label class="form-check-label" for="check2">Keyframe interval is set to 2 seconds</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="check3">
+                        <label class="form-check-label" for="check3">Bitrate is appropriate for your internet connection</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="check4">
+                        <label class="form-check-label" for="check4">Audio devices are correctly configured</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="check5">
+                        <label class="form-check-label" for="check5">Video sources are properly added and visible</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="check6">
+                        <label class="form-check-label" for="check6">Internet connection is stable (run a speed test)</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="check7">
+                        <label class="form-check-label" for="check7">CPU usage is not too high while streaming</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Troubleshooting Tips -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Troubleshooting Tips</h4>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="troubleshootingAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    Stream not connecting
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <ul>
+                                        <li>Double-check your stream key for accuracy</li>
+                                        <li>Verify the server URL is correctly entered</li>
+                                        <li>Check if your internet connection is active</li>
+                                        <li>Try the secure RTMPS protocol instead</li>
+                                        <li>Check if your firewall is blocking the connection (port 1935)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    Viewers report buffering issues
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <ul>
+                                        <li>Lower your bitrate (start with 2500 Kbps)</li>
+                                        <li>Reduce resolution to 720p or lower</li>
+                                        <li>Lower frame rate to 30 fps</li>
+                                        <li>Check your upload speed with a speed test</li>
+                                        <li>Ensure no other programs are using your bandwidth</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    OBS dropping frames
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <ul>
+                                        <li>Lower your video settings (resolution, frame rate)</li>
+                                        <li>Change CPU preset to "superfast" or "ultrafast"</li>
+                                        <li>Close other resource-intensive applications</li>
+                                        <li>Check "Stats" in OBS to identify the bottleneck</li>
+                                        <li>For encoding issues, try hardware encoding (NVENC or AMF)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                    Audio issues
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <ul>
+                                        <li>Check audio mixer in OBS to ensure sources aren't muted</li>
+                                        <li>Verify correct audio devices are selected in settings</li>
+                                        <li>Test audio with the "Start Recording" feature before streaming</li>
+                                        <li>For desktop audio issues, check your system sound settings</li>
+                                        <li>Adjust audio filters if microphone has background noise</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Advanced Tips -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Advanced Tips</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>🔑 Use Scene Collections</strong><br>
+                            Create different scene collections for different content types (gaming, presentations, etc.)
+                        </li>
+                        <li class="list-group-item">
+                            <strong>⏱️ Set Up Hotkeys</strong><br>
+                            Configure hotkeys to switch scenes, mute audio, or toggle sources while streaming
+                        </li>
+                        <li class="list-group-item">
+                            <strong>🎨 Use Filters</strong><br>
+                            Add color correction, noise suppression, or chroma key filters to enhance your stream
+                        </li>
+                        <li class="list-group-item">
+                            <strong>⚡ Try Hardware Encoding</strong><br>
+                            If you have a compatible GPU, use NVENC (NVIDIA) or AMF (AMD) for better performance
+                        </li>
+                        <li class="list-group-item">
+                            <strong>🤖 Install Plugins</strong><br>
+                            Enhance OBS with plugins like Stream Elements, Touch Portal, or Advanced Scene Switcher
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Contact Support -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-headset me-2"></i>Need More Help?</h4>
+                </div>
+                <div class="card-body text-center">
+                    <p>If you're still experiencing issues setting up OBS, our support team is here to help!</p>
+                    <a href="{{ url_for('support.contact') }}" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Save checkbox states to localStorage
+        const checkboxes = document.querySelectorAll('.form-check-input');
+        
+        // Load saved states
+        checkboxes.forEach(checkbox => {
+            const savedState = localStorage.getItem('obs_checklist_' + checkbox.id);
+            if (savedState === 'true') {
+                checkbox.checked = true;
+            }
+            
+            // Add event listeners to save state on change
+            checkbox.addEventListener('change', function() {
+                localStorage.setItem('obs_checklist_' + this.id, this.checked);
+            });
+        });
+    });
+</script>
+{% endblock %}

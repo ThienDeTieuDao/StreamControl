@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Admin - StreamLite{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Manage Users</h1>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="card bg-dark border-secondary">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-dark">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Media Count</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users.items %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.is_admin %}
+                            <span class="badge bg-danger">Admin</span>
+                            {% else %}
+                            <span class="badge bg-secondary">User</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+                        <td>{{ user.media_items|length }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <form action="{{ url_for('admin.toggle_admin', user_id=user.id) }}" method="post">
+                                    {% if user.is_admin %}
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" {% if user.id == current_user.id %}disabled{% endif %}>
+                                        Remove Admin
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                                        Make Admin
+                                    </button>
+                                    {% endif %}
+                                </form>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}" {% if user.id == current_user.id %}disabled{% endif %}>
+                                    Delete
+                                </button>
+                            </div>
+                            
+                            <!-- Delete User Confirmation Modal -->
+                            <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content bg-dark">
+                                        <div class="modal-header border-secondary">
+                                            <h5 class="modal-title text-light">Confirm User Deletion</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body text-light">
+                                            <p>Are you sure you want to delete user "<strong>{{ user.username }}</strong>"?</p>
+                                            <p>This will also delete all media uploaded by this user ({{ user.media_items|length }} items).</p>
+                                            <p class="text-danger">This action cannot be undone!</p>
+                                        </div>
+                                        <div class="modal-footer border-secondary">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="post">
+                                                <button type="submit" class="btn btn-danger">Delete User</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if users.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if users.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin.manage_users', page=users.prev_num) }}">Previous</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Previous</span>
+        </li>
+        {% endif %}
+        
+        {% for page_num in users.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if users.page == page_num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                </li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.manage_users', page=page_num) }}">{{ page_num }}</a>
+                </li>
+                {% endif %}
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if users.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin.manage_users', page=users.next_num) }}">Next</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Next</span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

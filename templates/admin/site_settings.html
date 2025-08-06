@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}Site Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-3">
+            {% include 'admin/sidebar.html' %}
+        </div>
+        
+        <div class="col-lg-9">
+            <h2>Site Settings</h2>
+            <p class="text-muted">Customize the appearance and behavior of your streaming platform.</p>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        <ul class="nav nav-tabs mb-3" id="settingsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">
+                                    General
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="appearance-tab" data-bs-toggle="tab" data-bs-target="#appearance" type="button" role="tab" aria-controls="appearance" aria-selected="false">
+                                    Appearance
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="branding-tab" data-bs-toggle="tab" data-bs-target="#branding" type="button" role="tab" aria-controls="branding" aria-selected="false">
+                                    Branding
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced" type="button" role="tab" aria-controls="advanced" aria-selected="false">
+                                    Advanced
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content" id="settingsTabContent">
+                            <!-- General Settings -->
+                            <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                                <div class="mb-3">
+                                    <label for="site_name" class="form-label">Site Name</label>
+                                    <input type="text" class="form-control" id="site_name" name="site_name" value="{{ settings.site_name }}">
+                                    <div class="form-text">The name of your streaming platform shown in the navbar and page titles.</div>
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="enable_registration" name="enable_registration" {% if settings.enable_registration %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable_registration">Allow New User Registration</label>
+                                    <div class="form-text">When disabled, the registration page will be unavailable to new users.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="max_upload_size_mb" class="form-label">Maximum Upload Size (MB)</label>
+                                    <input type="number" class="form-control" id="max_upload_size_mb" name="max_upload_size_mb" value="{{ settings.max_upload_size_mb }}">
+                                    <div class="form-text">Maximum allowed size for file uploads in megabytes. Server limits still apply.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="footer_text" class="form-label">Footer Text</label>
+                                    <input type="text" class="form-control" id="footer_text" name="footer_text" value="{{ settings.footer_text }}">
+                                    <div class="form-text">Text displayed in the site footer. HTML is not allowed.</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Appearance Settings -->
+                            <div class="tab-pane fade" id="appearance" role="tabpanel" aria-labelledby="appearance-tab">
+                                <div class="mb-3">
+                                    <label for="primary_color" class="form-label">Primary Color</label>
+                                    <div class="input-group">
+                                        <input type="color" class="form-control form-control-color" id="primary_color" name="primary_color" value="{{ settings.primary_color }}">
+                                        <input type="text" class="form-control" aria-label="Color hex value" value="{{ settings.primary_color }}">
+                                    </div>
+                                    <div class="form-text">Main color used for buttons and highlights.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="accent_color" class="form-label">Accent Color</label>
+                                    <div class="input-group">
+                                        <input type="color" class="form-control form-control-color" id="accent_color" name="accent_color" value="{{ settings.accent_color }}">
+                                        <input type="text" class="form-control" aria-label="Color hex value" value="{{ settings.accent_color }}">
+                                    </div>
+                                    <div class="form-text">Secondary color used for accents and interactive elements.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="custom_css" class="form-label">Custom CSS</label>
+                                    <textarea class="form-control" id="custom_css" name="custom_css" rows="8">{{ settings.custom_css }}</textarea>
+                                    <div class="form-text">Add custom CSS to further customize the appearance of your site.</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Branding Settings -->
+                            <div class="tab-pane fade" id="branding" role="tabpanel" aria-labelledby="branding-tab">
+                                <div class="mb-3">
+                                    <label class="form-label">Current Logo</label>
+                                    <div class="mb-2">
+                                        {% if settings.logo_path %}
+                                        <img src="{{ settings.logo_path }}" alt="Site Logo" class="img-thumbnail" style="max-height: 100px;">
+                                        {% else %}
+                                        <div class="text-muted">No custom logo uploaded. Default logo is being used.</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <label for="logo" class="form-label">Upload New Logo</label>
+                                    <input type="file" class="form-control" id="logo" name="logo" accept="image/png, image/jpeg, image/gif, image/svg+xml">
+                                    <div class="form-text">Recommended format: SVG or PNG with transparent background.</div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="logo_width" class="form-label">Logo Width (px)</label>
+                                        <input type="number" class="form-control" id="logo_width" name="logo_width" value="{{ settings.logo_width }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="logo_height" class="form-label">Logo Height (px)</label>
+                                        <input type="number" class="form-control" id="logo_height" name="logo_height" value="{{ settings.logo_height }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Current Favicon</label>
+                                    <div class="mb-2">
+                                        {% if settings.favicon_path %}
+                                        <img src="{{ settings.favicon_path }}" alt="Favicon" class="img-thumbnail" style="max-height: 32px;">
+                                        {% else %}
+                                        <div class="text-muted">No custom favicon uploaded. Default favicon is being used.</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <label for="favicon" class="form-label">Upload New Favicon</label>
+                                    <input type="file" class="form-control" id="favicon" name="favicon" accept="image/png, image/x-icon">
+                                    <div class="form-text">Use a square image in ICO or PNG format (recommended 32×32 pixels).</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Advanced Settings -->
+                            <div class="tab-pane fade" id="advanced" role="tabpanel" aria-labelledby="advanced-tab">
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    These settings should only be modified by experienced administrators. Incorrect settings may affect site functionality.
+                                </div>
+                                
+                                <!-- Add any advanced settings here -->
+                                <div class="mb-3">
+                                    <label class="form-label">Cache Control</label>
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-outline-secondary" id="clear-cache-btn">
+                                            <i class="fas fa-trash me-2"></i>Clear Cache
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure color input and text value stay synchronized
+        const syncColorInputs = (colorInput, textInput) => {
+            textInput.value = colorInput.value;
+            textInput.addEventListener('input', function() {
+                if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+                    colorInput.value = this.value;
+                }
+            });
+            colorInput.addEventListener('input', function() {
+                textInput.value = this.value;
+            });
+        };
+        
+        // Sync color inputs
+        const primaryColorInput = document.getElementById('primary_color');
+        const primaryTextInput = primaryColorInput.nextElementSibling;
+        syncColorInputs(primaryColorInput, primaryTextInput);
+        
+        const accentColorInput = document.getElementById('accent_color');
+        const accentTextInput = accentColorInput.nextElementSibling;
+        syncColorInputs(accentColorInput, accentTextInput);
+        
+        // Cache clear button (just a placeholder, actual implementation would depend on your caching system)
+        const clearCacheBtn = document.getElementById('clear-cache-btn');
+        if (clearCacheBtn) {
+            clearCacheBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to clear the cache? This may temporarily affect site performance.')) {
+                    // AJAX request to clear cache would go here
+                    alert('Cache cleared successfully!');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Media - Admin - StreamLite{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Manage Media</h1>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Uploader</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Uploaded</th>
+                        <th>Size</th>
+                        <th>Views</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for media in media_items.items %}
+                    <tr>
+                        <td>{{ media.id }}</td>
+                        <td>
+                            <a href="{{ url_for('media.watch', media_id=media.id) }}" class="text-decoration-none">
+                                {{ media.title }}
+                            </a>
+                        </td>
+                        <td>{{ media.uploader.username }}</td>
+                        <td>
+                            {% if media.media_type == 'video' %}
+                            <span class="badge bg-primary">Video</span>
+                            {% else %}
+                            <span class="badge bg-info">Audio</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if media.category %}
+                            {{ media.category.name }}
+                            {% else %}
+                            <em>None</em>
+                            {% endif %}
+                        </td>
+                        <td>{{ media.created_at.strftime('%b %d, %Y') }}</td>
+                        <td>{{ (media.file_size / (1024 * 1024))|round(2) }} MB</td>
+                        <td>{{ media.views }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for('media.watch', media_id=media.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <a href="{{ url_for('media.edit_media', media_id=media.id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMediaModal{{ media.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Delete Media Confirmation Modal -->
+                            <div class="modal fade" id="deleteMediaModal{{ media.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Confirm Media Deletion</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete "<strong>{{ media.title }}</strong>"?</p>
+                                            <p class="text-danger">This action cannot be undone!</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{{ url_for('media.delete_media', media_id=media.id) }}" method="post">
+                                                <button type="submit" class="btn btn-danger">Delete Media</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if media_items.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if media_items.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin.manage_media', page=media_items.prev_num) }}">Previous</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Previous</span>
+        </li>
+        {% endif %}
+        
+        {% for page_num in media_items.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if media_items.page == page_num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                </li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.manage_media', page=page_num) }}">{{ page_num }}</a>
+                </li>
+                {% endif %}
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if media_items.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin.manage_media', page=media_items.next_num) }}">Next</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Next</span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

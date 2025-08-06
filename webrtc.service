@@ -1,0 +1,19 @@
+[Unit]
+Description=StreamLite WebRTC Server
+After=network.target nginx.service
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/path/to/streamlite
+Environment="PATH=/path/to/streamlite/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="FLASK_ENV=production"
+ExecStart=/path/to/streamlite/venv/bin/python webrtc_server.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=webrtc
+
+[Install]
+WantedBy=multi-user.target
