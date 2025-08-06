@@ -1,0 +1,394 @@
+/* ======= General Styling ======= */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+}
+
+/* Make all text light by default */
+body, p, h1, h2, h3, h4, h5, h6, label, .card-title, .card-text, 
+.modal-title, .modal-body, .table, .form-control, .form-label,
+table, tr, td, th, .nav-tabs, .nav-link, .accordion-body,
+.dropdown-menu, .dropdown-item, .list-group-item, .nav-tabs .nav-link.active,
+.tab-content, .tab-pane, input, select, textarea, .form-text {
+    color: var(--bs-light) !important;
+}
+
+/* Make link text light but keep hover effects */
+a:not(.btn):not(.nav-link):not(.page-link) {
+    color: var(--bs-info) !important;
+}
+
+/* Ensure dark background for inputs */
+.form-control, .form-select, textarea, select {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Nav tabs styling */
+.nav-tabs {
+    border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.nav-tabs .nav-link {
+    color: var(--bs-light) !important;
+    border-color: transparent !important;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: var(--bs-primary) !important;
+}
+
+/* Tab content styling */
+.tab-content {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-top: none !important;
+    padding: 1rem !important;
+}
+
+/* Make content area flexible */
+.main-content {
+    flex: 1;
+}
+
+/* ======= Navigation ======= */
+.navbar {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+}
+
+.nav-link {
+    position: relative;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    color: var(--bs-primary) !important;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 50%;
+    background-color: var(--bs-primary);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+    width: 70%;
+}
+
+/* ======= User Avatar ======= */
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    background-color: var(--bs-primary);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+}
+
+.avatar-sm {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+}
+
+.avatar-initials {
+    line-height: 1;
+}
+
+/* ======= Hero Banner ======= */
+.hero-banner {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-dark) 100%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    position: relative;
+}
+
+.hero-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+
+.hero-image-container {
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.hero-icon {
+    font-size: 5rem;
+    color: var(--bs-light);
+}
+
+/* ======= Section Headers ======= */
+.section-header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 2rem;
+}
+
+/* ======= Media Cards ======= */
+.media-card {
+    background-color: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.hover-scale {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-scale:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Media thumbnails */
+.media-thumbnail {
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background-color: var(--bs-dark);
+    position: relative;
+}
+
+.card-img-top {
+    object-fit: cover;
+    height: 100%;
+    width: 100%;
+    transition: transform 0.5s ease;
+}
+
+.media-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+/* Media overlay */
+.media-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.media-card:hover .media-overlay {
+    opacity: 1;
+}
+
+.play-btn {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bs-primary);
+    color: white;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+.media-card:hover .play-btn {
+    transform: scale(1);
+}
+
+/* Background gradients */
+.bg-gradient-dark {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-info) 100%);
+}
+
+/* ======= Footer ======= */
+.footer-area {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.footer-link {
+    color: var(--bs-light);
+    opacity: 0.7;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: block;
+    padding: 0.3rem 0;
+}
+
+.footer-link:hover {
+    opacity: 1;
+    color: var(--bs-primary);
+    transform: translateX(5px);
+}
+
+/* ======= Video Player Styles ======= */
+.video-js {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.vjs-theme-city {
+    --vjs-theme-city--primary: var(--bs-primary);
+}
+
+.vjs-theme-city .vjs-big-play-button {
+    width: 70px;
+    height: 70px;
+    background: rgba(0, 0, 0, 0.6);
+    line-height: 70px;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Audio player container */
+.audio-player {
+    min-height: 200px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* ======= File Upload ======= */
+#uploadProgress {
+    height: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* ======= Admin Dashboard ======= */
+.stats-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* ======= Custom Table Styles ======= */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table th {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--bs-light);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ======= Search Bar ======= */
+.navbar .d-flex input[type="search"] {
+    max-width: 250px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navbar .d-flex input[type="search"]:focus {
+    background-color: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* ======= Responsive Adjustments ======= */
+@media (max-width: 768px) {
+    .navbar .d-flex {
+        width: 100%;
+        margin: 10px 0;
+    }
+    
+    .navbar .d-flex input[type="search"] {
+        max-width: none;
+    }
+    
+    .hero-banner {
+        text-align: center;
+    }
+}
+
+/* ======= Fix for video.js ======= */
+.video-js.vjs-fluid {
+    padding-top: 56.25%;
+}
+
+/* ======= Pagination ======= */
+.page-link {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--bs-light);
+    border: none;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.page-item.active .page-link {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.page-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--bs-primary);
+}
+
+/* ======= Modal Styling ======= */
+.modal-content {
+    background-color: var(--bs-dark) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.modal-header, .modal-footer {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
